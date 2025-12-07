@@ -1,0 +1,10 @@
+﻿@model IEnumerable<QLKhachSan.Models.Menu>
+
+@foreach (var item in Model)
+{
+    <li class="drop-holder">
+        <a href="/@item.Url">
+            @item.MenuName
+        </a>
+    </li>
+}
