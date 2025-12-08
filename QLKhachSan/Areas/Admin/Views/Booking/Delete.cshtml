@@ -1,0 +1,126 @@
+﻿@model QLKhachSan.Models.Booking
+
+@{
+    ViewData["Title"] = "Xóa đặt phòng";
+}
+
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Xóa đặt phòng</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Đặt phòng</a></li>
+                    <li class="breadcrumb-item active">Xóa</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card card-danger">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Xác nhận xóa đặt phòng
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <h5><i class="icon fas fa-exclamation-triangle"></i> Cảnh báo!</h5>
+                            Bạn có chắc chắn muốn xóa đặt phòng này? Hành động này không thể hoàn tác.
+                        </div>
+
+                        <table class="table table-bordered">
+                            <tr>
+                                <th width="30%">Mã booking</th>
+                                <td><strong>#@Model.BookingId</strong></td>
+                            </tr>
+                            <tr>
+                                <th>Khách hàng</th>
+                                <td>
+                                    <strong>@(Model.User?.FullName ?? "N/A")</strong>
+                                    @if (Model.User != null)
+                                    {
+                                        <br>
+                                        <small class="text-muted">@Model.User.Email</small>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Phòng</th>
+                                <td>
+                                    <strong>Phòng @(Model.Room?.RoomNumber ?? "N/A")</strong>
+                                    @if (Model.Room != null)
+                                    {
+                                        <br>
+                                        <small class="text-muted">@Model.Room.RoomType</small>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Check-in</th>
+                                <td>@Model.CheckIn?.ToString("dd/MM/yyyy")</td>
+                            </tr>
+                            <tr>
+                                <th>Check-out</th>
+                                <td>@Model.CheckOut?.ToString("dd/MM/yyyy")</td>
+                            </tr>
+                            <tr>
+                                <th>Tổng tiền</th>
+                                <td>
+                                    <strong class="text-success">@Model.TotalPrice?.ToString("N0") ₫</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Trạng thái</th>
+                                <td>
+                                    @if (Model.Status == "Confirmed")
+                                    {
+                                        <span class="badge badge-success">Đã xác nhận</span>
+                                    }
+                                    else if (Model.Status == "Pending")
+                                    {
+                                        <span class="badge badge-warning">Chờ xác nhận</span>
+                                    }
+                                    else if (Model.Status == "Checked-in")
+                                    {
+                                        <span class="badge badge-info">Đang ở</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary">@Model.Status</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Ngày tạo</th>
+                                <td>@Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="card-footer">
+                        <form asp-action="Delete" method="post">
+                            <input type="hidden" asp-for="BookingId" />
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Xác nhận xóa
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Hủy bỏ
+                            </a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

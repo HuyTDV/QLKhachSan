@@ -1,0 +1,57 @@
+﻿@model QLKhachSan.Models.BlogPost
+
+@{
+    ViewData["Title"] = "Xóa Bài viết";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title">Xác nhận xóa Bài viết</h3>
+                </div>
+                <div class="card-body">
+                    <h4 class="text-danger">Bạn có chắc chắn muốn xóa bài viết này?</h4>
+                    <hr />
+                    <dl class="row">
+                        <dt class="col-sm-3">ID</dt>
+                        <dd class="col-sm-9">@Model.PostId</dd>
+
+                        <dt class="col-sm-3">Tiêu đề</dt>
+                        <dd class="col-sm-9">@Model.Title</dd>
+
+                        <dt class="col-sm-3">Nội dung</dt>
+                        <dd class="col-sm-9">
+                            @if (Model.Content != null && Model.Content.Length > 200)
+                            {
+                                @Model.Content.Substring(0, 200)
+                                <text>...</text>
+                            }
+                            else
+                            {
+                                @Model.Content
+                            }
+                        </dd>
+
+                        <dt class="col-sm-3">Tác giả</dt>
+                        <dd class="col-sm-9">@Model.Author?.FullName</dd>
+
+                        <dt class="col-sm-3">Ngày tạo</dt>
+                        <dd class="col-sm-9">@Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</dd>
+                    </dl>
+
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="PostId" />
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Xóa
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Hủy
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

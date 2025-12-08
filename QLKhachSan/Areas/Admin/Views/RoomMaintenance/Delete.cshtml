@@ -1,0 +1,140 @@
+﻿@model QLKhachSan.Models.RoomMaintenance
+
+@{
+    ViewData["Title"] = "Xóa bảo trì";
+}
+
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Xóa yêu cầu bảo trì</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Bảo trì</a></li>
+                    <li class="breadcrumb-item active">Xóa</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card card-danger">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Xác nhận xóa bảo trì
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <h5><i class="icon fas fa-exclamation-triangle"></i> Cảnh báo!</h5>
+                            Bạn có chắc chắn muốn xóa yêu cầu bảo trì này? Hành động này không thể hoàn tác.
+                        </div>
+
+                        <table class="table table-bordered">
+                            <tr>
+                                <th width="30%">Mã bảo trì</th>
+                                <td><strong>#@Model.MaintenanceId</strong></td>
+                            </tr>
+                            <tr>
+                                <th>Phòng</th>
+                                <td>
+                                    @if (Model.Room != null)
+                                    {
+                                        <strong>Phòng @Model.Room.RoomNumber</strong>
+                                        <br>
+                                        <small class="text-muted">@Model.Room.RoomType</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">N/A</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Mô tả vấn đề</th>
+                                <td>
+                                    <div class="alert alert-warning mb-0">
+                                        @Model.Description
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Nhân viên phụ trách</th>
+                                <td>
+                                    @if (Model.Staff != null)
+                                    {
+                                        <strong>@Model.Staff.FullName</strong>
+                                        <br>
+                                        <small class="text-muted">@Model.Staff.Email</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa phân công</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Ngày bảo trì</th>
+                                <td>@Model.MaintenanceDate?.ToString("dd/MM/yyyy HH:mm")</td>
+                            </tr>
+                            <tr>
+                                <th>Trạng thái</th>
+                                <td>
+                                    @if (Model.Status == "Completed")
+                                    {
+                                        <span class="badge badge-success">Hoàn thành</span>
+                                    }
+                                    else if (Model.Status == "In Progress")
+                                    {
+                                        <span class="badge badge-warning">Đang thực hiện</span>
+                                    }
+                                    else if (Model.Status == "Pending")
+                                    {
+                                        <span class="badge badge-secondary">Chờ xử lý</span>
+                                    }
+                                    else if (Model.Status == "Cancelled")
+                                    {
+                                        <span class="badge badge-danger">Đã hủy</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-info">@Model.Status</span>
+                                    }
+                                </td>
+                            </tr>
+                        </table>
+
+                        @if (Model.Status == "In Progress")
+                        {
+                            <div class="alert alert-danger mt-3">
+                                <i class="icon fas fa-ban"></i>
+                                <strong>Lưu ý:</strong> Công việc bảo trì này đang được thực hiện. Việc xóa có thể gây ảnh hưởng đến tiến độ công việc!
+                            </div>
+                        }
+                    </div>
+                    <div class="card-footer">
+                        <form asp-action="Delete" method="post">
+                            <input type="hidden" asp-for="MaintenanceId" />
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Xác nhận xóa
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Hủy bỏ
+                            </a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

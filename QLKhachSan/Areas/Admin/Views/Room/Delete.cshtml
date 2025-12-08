@@ -1,0 +1,100 @@
+﻿@model QLKhachSan.Models.Room
+
+@{
+    ViewData["Title"] = "Xóa phòng";
+}
+
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Xóa phòng</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home", new { area = "Admin" })">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Danh sách phòng</a></li>
+                    <li class="breadcrumb-item active">Xóa</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card card-danger">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-exclamation-triangle"></i> Xác nhận xóa phòng
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <h5><i class="icon fas fa-exclamation-triangle"></i> Cảnh báo!</h5>
+                            Bạn có chắc chắn muốn xóa phòng này không? Hành động này không thể hoàn tác!
+                        </div>
+
+                        <dl class="row">
+                            <dt class="col-sm-4">Số phòng:</dt>
+                            <dd class="col-sm-8"><strong>@Model.RoomNumber</strong></dd>
+
+                            <dt class="col-sm-4">Loại phòng:</dt>
+                            <dd class="col-sm-8">@Model.RoomType</dd>
+
+                            <dt class="col-sm-4">Chi nhánh:</dt>
+                            <dd class="col-sm-8">@(Model.Branch?.BranchName ?? "N/A")</dd>
+
+                            <dt class="col-sm-4">Sức chứa:</dt>
+                            <dd class="col-sm-8">@Model.Capacity người</dd>
+
+                            <dt class="col-sm-4">Giá phòng:</dt>
+                            <dd class="col-sm-8">@Model.Price?.ToString("N0") ₫</dd>
+
+                            <dt class="col-sm-4">Tiện nghi:</dt>
+                            <dd class="col-sm-8">@Model.Amenities</dd>
+
+                            <dt class="col-sm-4">Trạng thái:</dt>
+                            <dd class="col-sm-8">
+                                @if (Model.Status == "Available")
+                                {
+                                    <span class="badge badge-success">Trống</span>
+                                }
+                                else if (Model.Status == "Booked")
+                                {
+                                    <span class="badge badge-danger">Đã đặt</span>
+                                }
+                                else if (Model.Status == "Maintenance")
+                                {
+                                    <span class="badge badge-warning">Bảo trì</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-info">@Model.Status</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-4">Ngày tạo:</dt>
+                            <dd class="col-sm-8">@Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</dd>
+                        </dl>
+                    </div>
+                    <div class="card-footer">
+                        <form asp-action="Delete" method="post" style="display: inline;">
+                            <input type="hidden" asp-for="RoomId" />
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Xác nhận xóa
+                            </button>
+                        </form>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

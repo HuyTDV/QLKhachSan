@@ -1,0 +1,129 @@
+﻿@model IEnumerable<QLKhachSan.Models.RoomMaintenance>
+
+@{
+    ViewData["Title"] = "Quản lý bảo trì phòng";
+}
+
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Quản lý bảo trì phòng</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                    <li class="breadcrumb-item active">Bảo trì</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Danh sách bảo trì</h3>
+                <div class="card-tools">
+                    <a asp-action="Create" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus"></i> Thêm bảo trì mới
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        @TempData["Success"]
+                    </div>
+                }
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Mã bảo trì</th>
+                                <th>Phòng</th>
+                                <th>Mô tả</th>
+                                <th>Nhân viên</th>
+                                <th>Ngày bảo trì</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                foreach (var maintenance in Model)
+                                {
+                                    <tr>
+                                        <td><strong>#@maintenance.MaintenanceId</strong></td>
+                                        <td>
+                                            <strong>Phòng @(maintenance.Room?.RoomNumber ?? "N/A")</strong>
+                                            @if (maintenance.Room != null)
+                                            {
+                                                <br>
+                                                <small class="text-muted">@maintenance.Room.RoomType</small>
+                                            }
+                                        </td>
+                                        <td>@maintenance.Description</td>
+                                        <td>@(maintenance.Staff?.FullName ?? "Chưa phân công")</td>
+                                        <td>@maintenance.MaintenanceDate?.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            @if (maintenance.Status == "Completed")
+                                            {
+                                                <span class="badge badge-success">Hoàn thành</span>
+                                            }
+                                            else if (maintenance.Status == "In Progress")
+                                            {
+                                                <span class="badge badge-warning">Đang thực hiện</span>
+                                            }
+                                            else if (maintenance.Status == "Pending")
+                                            {
+                                                <span class="badge badge-secondary">Chờ xử lý</span>
+                                            }
+                                            else if (maintenance.Status == "Cancelled")
+                                            {
+                                                <span class="badge badge-danger">Đã hủy</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-info">@maintenance.Status</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a asp-action="Details" asp-route-id="@maintenance.MaintenanceId" class="btn btn-info btn-sm" title="Chi tiết">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a asp-action="Edit" asp-route-id="@maintenance.MaintenanceId" class="btn btn-warning btn-sm" title="Sửa">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a asp-action="Delete" asp-route-id="@maintenance.MaintenanceId" class="btn btn-danger btn-sm" title="Xóa">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">
+                                        <i class="fas fa-tools fa-3x mb-3"></i>
+                                        <p>Chưa có yêu cầu bảo trì nào</p>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,133 @@
+﻿@model QLKhachSan.Models.Review
+
+@{
+    ViewData["Title"] = "Phản hồi Đánh giá";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h3 class="card-title">
+                        <i class="fas fa-reply"></i> Phản hồi Đánh giá
+                    </h3>
+                </div>
+                <form asp-action="Edit" method="post">
+                    <div class="card-body">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <input type="hidden" asp-for="ReviewId" />
+                        <input type="hidden" asp-for="UserId" />
+                        <input type="hidden" asp-for="RoomId" />
+                        <input type="hidden" asp-for="Rating" />
+                        <input type="hidden" asp-for="Comment" />
+                        <input type="hidden" asp-for="CreatedAt" />
+
+                        <!-- Hiển thị đánh giá của khách -->
+                        <div class="card card-outline card-info mb-3">
+                            <div class="card-header">
+                                <h5 class="card-title">
+                                    <i class="fas fa-comment"></i> Đánh giá của khách hàng
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Khách hàng:</strong> @Model.User?.FullName</p>
+                                        <p><strong>Phòng:</strong> <span class="badge badge-secondary">@Model.Room?.RoomNumber</span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p>
+                                            <strong>Đánh giá:</strong>
+                                            @if (Model.Rating.HasValue)
+                                            {
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    if (i <= Model.Rating.Value)
+                                                    {
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="far fa-star text-muted"></i>
+                                                    }
+                                                }
+                                                <span>(@Model.Rating/5)</span>
+                                            }
+                                        </p>
+                                        <p><strong>Ngày:</strong> @Model.CreatedAt?.ToString("dd/MM/yyyy")</p>
+                                    </div>
+                                </div>
+                                <hr />
+                                <div class="bg-light p-3 rounded">
+                                    <strong>Nội dung đánh giá:</strong>
+                                    <p class="mt-2 mb-0">
+                                        <i class="fas fa-quote-left text-muted"></i>
+                                        @Model.Comment
+                                        <i class="fas fa-quote-right text-muted"></i>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form phản hồi -->
+                        <div class="form-group">
+                            <label asp-for="Reply" class="control-label">
+                                <i class="fas fa-reply"></i> Phản hồi của khách sạn
+                                @if (string.IsNullOrEmpty(Model.Reply))
+                                {
+                                    <span class="text-danger">*</span>
+                                }
+                            </label>
+                            <textarea asp-for="Reply" class="form-control" rows="6"
+                                      placeholder="Nhập phản hồi của bạn tại đây...
+Ví dụ:
+- Cảm ơn quý khách đã đánh giá!
+- Chúng tôi rất vui khi quý khách hài lòng với dịch vụ
+- Xin lỗi về sự bất tiện, chúng tôi sẽ cải thiện..."></textarea>
+                            <span asp-validation-for="Reply" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                <i class="fas fa-lightbulb"></i>
+                                <strong>Lưu ý:</strong> Phản hồi nên chân thành, lịch sự và giải quyết được vấn đề khách hàng nêu ra
+                            </small>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Mẹo phản hồi hiệu quả:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Cảm ơn khách hàng đã dành thời gian đánh giá</li>
+                                <li>Giải quyết cụ thể những vấn đề khách nêu ra</li>
+                                <li>Cam kết cải thiện nếu có phản ánh tiêu cực</li>
+                                <li>Mời khách quay lại trong tương lai</li>
+                            </ul>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.Reply))
+                        {
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i>
+                                <strong>Đã có phản hồi trước đó.</strong> Bạn đang chỉnh sửa phản hồi.
+                            </div>
+                        }
+                    </div>
+
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> @(string.IsNullOrEmpty(Model.Reply) ? "Gửi phản hồi" : "Cập nhật phản hồi")
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

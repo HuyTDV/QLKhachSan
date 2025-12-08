@@ -1,0 +1,86 @@
+﻿@model QLKhachSan.Models.Service
+
+@{
+    ViewData["Title"] = "Thêm Dịch vụ";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Thêm Dịch vụ mới</h3>
+                </div>
+                <form asp-action="Create" method="post">
+                    <div class="card-body">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="form-group">
+                            <label asp-for="ServiceName" class="control-label">Tên dịch vụ <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-concierge-bell"></i>
+                                    </span>
+                                </div>
+                                <input asp-for="ServiceName" class="form-control" placeholder="Vd: Breakfast Buffet" required />
+                            </div>
+                            <span asp-validation-for="ServiceName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Description" class="control-label">Mô tả dịch vụ</label>
+                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Nhập mô tả chi tiết về dịch vụ"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Price" class="control-label">Giá dịch vụ (VNĐ) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                    </span>
+                                </div>
+                                <input asp-for="Price" type="number" step="1000" min="0" class="form-control" placeholder="Vd: 150000" required />
+                                <div class="input-group-append">
+                                    <span class="input-group-text">VNĐ</span>
+                                </div>
+                            </div>
+                            <span asp-validation-for="Price" class="text-danger"></span>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-lightbulb"></i>
+                            <strong>Gợi ý dịch vụ phổ biến:</strong> Breakfast Buffet, Airport Pickup, Laundry, Spa Package, City Tour, Room Service, Gym, Swimming Pool
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Lưu
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Format số tiền
+        document.querySelector('input[name="Price"]').addEventListener('blur', function() {
+            if (this.value) {
+                const value = parseInt(this.value);
+                this.value = value;
+            }
+        });
+    </script>
+}

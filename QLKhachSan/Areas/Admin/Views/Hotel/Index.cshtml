@@ -1,0 +1,82 @@
+﻿@model IEnumerable<QLKhachSan.Models.Hotel>
+
+@{
+    ViewData["Title"] = "Quản lý Khách sạn";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">Danh sách Khách sạn</h3>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Thêm mới
+                    </a>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show">
+                            @TempData["Success"]
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        </div>
+                    }
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tên khách sạn</th>
+                                    <th>Đánh giá</th>
+                                    <th>Hotline</th>
+                                    <th>Email</th>
+                                    <th>Số chi nhánh</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>@item.HotelId</td>
+                                        <td>
+                                            <strong>@item.HotelName</strong>
+                                        </td>
+                                        <td>
+                                            @if (item.Rating.HasValue)
+                                            {
+                                                <span class="badge badge-warning">
+                                                    <i class="fas fa-star"></i> @item.Rating.Value
+                                                </span>
+                                            }
+                                        </td>
+                                        <td>@item.Hotline</td>
+                                        <td>@item.Email</td>
+                                        <td>
+                                            <span class="badge badge-info">@item.HotelBranches.Count chi nhánh</span>
+                                        </td>
+                                        <td>@item.CreatedAt?.ToString("dd/MM/yyyy")</td>
+                                        <td>
+                                            <a asp-action="Details" asp-route-id="@item.HotelId" class="btn btn-info btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@item.HotelId" class="btn btn-warning btn-sm">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@item.HotelId" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

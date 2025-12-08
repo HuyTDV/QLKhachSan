@@ -1,444 +1,252 @@
-﻿<!-- /.navbar -->
-<!-- Main Sidebar Container -->
-<aside class="main-sidebar sidebar-dark-primary elevation-4">
-    <!-- Brand Logo -->
-    <a href="#" class="brand-link">
-        <i class="fas fa-hotel brand-image" style="font-size: 2rem; margin-left: 12px; margin-right: 10px;"></i>
-        <span class="brand-text font-weight-light">Grandora Hotel</span>
-    </a>
+﻿@{
+    ViewData["Title"] = "Tổng quan";
+}
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <!-- Sidebar user panel -->
-        <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-            <div class="image">
-                <i class="fas fa-user-circle" style="font-size: 2rem; color: #fff;"></i>
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Tổng quan</h1>
             </div>
-            <div class="info">
-                <a href="#" class="d-block">Quản trị viên</a>
-            </div>
-        </div>
-
-        <!-- Sidebar Menu -->
-        <nav class="mt-2">
-            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-
-                <!-- Dashboard -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link active">
-                        <i class="nav-icon fas fa-tachometer-alt"></i>
-                        <p>Tổng quan</p>
-                    </a>
-                </li>
-
-                <!-- Quản lý phòng -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-bed"></i>
-                        <p>
-                            Quản lý phòng
-                            <i class="fas fa-angle-left right"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Danh sách phòng</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Loại phòng</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Giá phòng</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Tình trạng phòng</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!-- Quản lý đặt phòng -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-calendar-check"></i>
-                        <p>
-                            Đặt phòng
-                            <i class="fas fa-angle-left right"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Đặt phòng mới</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Danh sách đặt phòng</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Lịch đặt phòng</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!-- Check-in / Check-out -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-door-open"></i>
-                        <p>
-                            Nhận/Trả phòng
-                            <i class="fas fa-angle-left right"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Check-in</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Check-out</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Khách đang ở</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!-- Quản lý khách hàng -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-users"></i>
-                        <p>
-                            Khách hàng
-                            <i class="fas fa-angle-left right"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Danh sách khách hàng</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Khách VIP</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Lịch sử lưu trú</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!-- Quản lý dịch vụ -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-concierge-bell"></i>
-                        <p>
-                            Dịch vụ
-                            <i class="fas fa-angle-left right"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Danh sách dịch vụ</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Ăn uống</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Giặt ủi</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Spa & Massage</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Yêu cầu dịch vụ</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!-- Quản lý nhân viên -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-user-tie"></i>
-                        <p>
-                            Nhân viên
-                            <i class="fas fa-angle-left right"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Danh sách nhân viên</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Phân ca làm việc</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Chấm công</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!-- Báo cáo & Thống kê -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-chart-line"></i>
-                        <p>
-                            Báo cáo & Thống kê
-                            <i class="fas fa-angle-left right"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Doanh thu</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Tỷ lệ lấp đầy</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Báo cáo dịch vụ</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Báo cáo tồn kho</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!-- Tài chính -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-money-bill-wave"></i>
-                        <p>
-                            Tài chính
-                            <i class="fas fa-angle-left right"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Hóa đơn</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Thu chi</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Công nợ</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!-- Cài đặt -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-cog"></i>
-                        <p>
-                            Cài đặt
-                            <i class="fas fa-angle-left right"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Thông tin khách sạn</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Phân quyền</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Sao lưu dữ liệu</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!-- Đăng xuất -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-sign-out-alt"></i>
-                        <p>Đăng xuất</p>
-                    </a>
-                </li>
-
-            </ul>
-        </nav>
-        <!-- /.sidebar-menu -->
-    </div>
-    <!-- /.sidebar -->
-</aside>
-
-<!-- Content Wrapper -->
-<div class="content-wrapper">
-    <!-- Content Header -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">Tổng quan</h1>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="#">Trang chủ</a></li>
-                        <li class="breadcrumb-item active">Tổng quan</li>
-                    </ol>
-                </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="#">Trang chủ</a></li>
+                    <li class="breadcrumb-item active">Tổng quan</li>
+                </ol>
             </div>
         </div>
     </div>
-
-    <!-- Main content -->
-    <section class="content">
-        <div class="container-fluid">
-            <!-- Small boxes -->
-            <div class="row">
-                <div class="col-lg-3 col-6">
-                    <div class="small-box bg-info">
-                        <div class="inner">
-                            <h3>45</h3>
-                            <p>Tổng số phòng</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-bed"></i>
-                        </div>
-                        <a href="#" class="small-box-footer">Chi tiết <i class="fas fa-arrow-circle-right"></i></a>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-6">
-                    <div class="small-box bg-success">
-                        <div class="inner">
-                            <h3>32</h3>
-                            <p>Phòng đã đặt</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-calendar-check"></i>
-                        </div>
-                        <a href="#" class="small-box-footer">Chi tiết <i class="fas fa-arrow-circle-right"></i></a>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-6">
-                    <div class="small-box bg-warning">
-                        <div class="inner">
-                            <h3>13</h3>
-                            <p>Phòng trống</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-door-open"></i>
-                        </div>
-                        <a href="#" class="small-box-footer">Chi tiết <i class="fas fa-arrow-circle-right"></i></a>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-6">
-                    <div class="small-box bg-danger">
-                        <div class="inner">
-                            <h3>85.5M</h3>
-                            <p>Doanh thu tháng</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-money-bill-wave"></i>
-                        </div>
-                        <a href="#" class="small-box-footer">Chi tiết <i class="fas fa-arrow-circle-right"></i></a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Additional content can be added here -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Chào mừng đến với hệ thống quản lý Khách sạn Grandora</h3>
-                        </div>
-                        <div class="card-body">
-                            <p>Sử dụng menu bên trái để điều hướng qua các chức năng quản lý khách sạn.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 </div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <!-- Small boxes -->
+        <div class="row">
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalRooms</h3>
+                        <p>Tổng số phòng</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-bed"></i>
+                    </div>
+                    <a href="@Url.Action("Index", "Room")" class="small-box-footer">
+                        Chi tiết <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@ViewBag.AvailableRooms</h3>
+                        <p>Phòng trống</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-door-open"></i>
+                    </div>
+                    <a href="@Url.Action("Index", "Room")" class="small-box-footer">
+                        Chi tiết <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@ViewBag.BookedRooms</h3>
+                        <p>Phòng đã đặt</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <a href="@Url.Action("Index", "Booking")" class="small-box-footer">
+                        Chi tiết <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>@ViewBag.MonthlyRevenue.ToString("N0")<sup style="font-size: 20px">₫</sup></h3>
+                        <p>Doanh thu tháng</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <a href="@Url.Action("Index", "Payment")" class="small-box-footer">
+                        Chi tiết <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Second row -->
+        <div class="row">
+            <!-- Recent Bookings -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-calendar-alt"></i> Đặt phòng gần đây
+                        </h3>
+                        <div class="card-tools">
+                            <span class="badge badge-primary">@ViewBag.MonthlyBookings booking trong tháng</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Mã booking</th>
+                                    <th>Khách hàng</th>
+                                    <th>Phòng</th>
+                                    <th>Check-in</th>
+                                    <th>Trạng thái</th>
+                                    <th>Tổng tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (ViewBag.RecentBookings != null && ViewBag.RecentBookings.Count > 0)
+                                {
+                                    foreach (var booking in ViewBag.RecentBookings)
+                                    {
+                                        <tr>
+                                            <td>#@booking.BookingId</td>
+                                            <td>@(booking.User?.FullName ?? "N/A")</td>
+                                            <td>Phòng @(booking.Room?.RoomNumber ?? "N/A")</td>
+                                            <td>@booking.CheckIn?.ToString("dd/MM/yyyy")</td>
+                                            <td>
+                                                @if (booking.Status == "Confirmed")
+                                                {
+                                                    <span class="badge badge-success">Đã xác nhận</span>
+                                                }
+                                                else if (booking.Status == "Pending")
+                                                {
+                                                    <span class="badge badge-warning">Chờ xác nhận</span>
+                                                }
+                                                else if (booking.Status == "Checked-in")
+                                                {
+                                                    <span class="badge badge-info">Đang ở</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-secondary">@booking.Status</span>
+                                                }
+                                            </td>
+                                            <td>@booking.TotalPrice?.ToString("N0") ₫</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">Chưa có booking nào</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="@Url.Action("Index", "Booking")" class="btn btn-sm btn-primary">
+                            Xem tất cả booking
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maintenance -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-tools"></i> Phòng cần bảo trì
+                        </h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            @if (ViewBag.MaintenanceNeeded != null && ViewBag.MaintenanceNeeded.Count > 0)
+                            {
+                                foreach (var maintenance in ViewBag.MaintenanceNeeded)
+                                {
+                                    <li class="list-group-item">
+                                        <strong>Phòng @(maintenance.Room?.RoomNumber ?? "N/A")</strong>
+                                        <br>
+                                        <small class="text-muted">@maintenance.Description</small>
+                                        <br>
+                                        @if (maintenance.Status == "In Progress")
+                                        {
+                                            <span class="badge badge-warning">Đang bảo trì</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-secondary">Chờ xử lý</span>
+                                        }
+                                    </li>
+                                }
+                            }
+                            else
+                            {
+                                <li class="list-group-item text-center text-muted">
+                                    Không có phòng cần bảo trì
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="@Url.Action("Index", "RoomMaintenance")" class="btn btn-sm btn-warning">
+                            Xem tất cả
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-bolt"></i> Thao tác nhanh
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <a href="@Url.Action("Create", "Room")" class="btn btn-primary btn-block">
+                            <i class="fas fa-plus"></i> Thêm phòng mới
+                        </a>
+                        <a href="@Url.Action("Create", "Booking")" class="btn btn-success btn-block">
+                            <i class="fas fa-calendar-plus"></i> Đặt phòng mới
+                        </a>
+                        <a href="@Url.Action("Index", "User")" class="btn btn-info btn-block">
+                            <i class="fas fa-users"></i> Quản lý khách hàng
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Welcome Card -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-info-circle"></i> Chào mừng đến với hệ thống quản lý Khách sạn Grandora
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Sử dụng menu bên trái để điều hướng qua các chức năng quản lý khách sạn.</p>
+                        <ul>
+                            <li><strong>Quản lý phòng:</strong> Thêm, sửa, xóa phòng và theo dõi trạng thái</li>
+                            <li><strong>Đặt phòng:</strong> Quản lý booking từ khách hàng</li>
+                            <li><strong>Khách hàng:</strong> Quản lý thông tin và đánh giá</li>
+                            <li><strong>Dịch vụ:</strong> Quản lý các dịch vụ bổ sung</li>
+                            <li><strong>Tài chính:</strong> Theo dõi thanh toán và doanh thu</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

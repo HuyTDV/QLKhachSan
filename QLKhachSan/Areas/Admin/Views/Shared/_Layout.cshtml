@@ -1,29 +1,16 @@
 ﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Khách Sạn Grandora</title>
-    <!-- AdminLTE CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/css/adminlte.min.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Grandora Hotel Admin</title>
+
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Font -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700">
-    <style>
-        body {
-            font-family: 'Source Sans Pro', sans-serif;
-        }
-
-        .brand-text {
-            font-weight: 600;
-            font-size: 1.2rem;
-        }
-
-        .nav-icon {
-            margin-right: 10px;
-        }
-    </style>
+    <!-- AdminLTE -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/css/adminlte.min.css">
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
     <div class="wrapper">
@@ -36,32 +23,12 @@
                     <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
                 </li>
                 <li class="nav-item d-none d-sm-inline-block">
-                    <a href="#" class="nav-link">Trang chủ</a>
+                    <a href="@Url.Action("Index", "Home", new { area = "Admin" })" class="nav-link">Trang chủ</a>
                 </li>
             </ul>
 
             <!-- Right navbar links -->
             <ul class="navbar-nav ml-auto">
-                <!-- Notifications Dropdown Menu -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link" data-toggle="dropdown" href="#">
-                        <i class="far fa-bell"></i>
-                        <span class="badge badge-warning navbar-badge">5</span>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                        <span class="dropdown-item dropdown-header">5 Thông báo</span>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-door-open mr-2"></i> 3 phòng cần dọn dẹp
-                            <span class="float-right text-muted text-sm">5 phút</span>
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-calendar-check mr-2"></i> 2 đặt phòng mới
-                            <span class="float-right text-muted text-sm">12 phút</span>
-                        </a>
-                    </div>
-                </li>
                 <li class="nav-item">
                     <a class="nav-link" data-widget="fullscreen" href="#" role="button">
                         <i class="fas fa-expand-arrows-alt"></i>
@@ -69,8 +36,210 @@
                 </li>
             </ul>
         </nav>
-        
-        @RenderBody()
+
+        <!-- Main Sidebar Container -->
+        <aside class="main-sidebar sidebar-dark-primary elevation-4">
+            <!-- Brand Logo -->
+            <a href="@Url.Action("Index", "Home", new { area = "Admin" })" class="brand-link">
+                <i class="fas fa-hotel brand-image" style="font-size: 2rem; margin-left: 12px; margin-right: 10px;"></i>
+                <span class="brand-text font-weight-light">Grandora Hotel</span>
+            </a>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Sidebar user panel -->
+                <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                    <div class="image">
+                        <i class="fas fa-user-circle" style="font-size: 2rem; color: #fff;"></i>
+                    </div>
+                    <div class="info">
+                        <a href="#" class="d-block">Quản trị viên</a>
+                    </div>
+                </div>
+
+                <!-- Sidebar Menu -->
+                <nav class="mt-2">
+                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+
+                        <!-- Dashboard -->
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "Home", new { area = "Admin" })" class="nav-link">
+                                <i class="nav-icon fas fa-tachometer-alt"></i>
+                                <p>Tổng quan</p>
+                            </a>
+                        </li>
+
+                        <!-- Quản lý phòng -->
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon fas fa-bed"></i>
+                                <p>
+                                    Quản lý phòng
+                                    <i class="fas fa-angle-left right"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="@Url.Action("Index", "Room", new { area = "Admin" })" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Danh sách phòng</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="@Url.Action("Index", "HotelBranch", new { area = "Admin" })" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Chi nhánh</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="@Url.Action("Index", "RoomMaintenance", new { area = "Admin" })" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Bảo trì phòng</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Quản lý đặt phòng -->
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon fas fa-calendar-check"></i>
+                                <p>
+                                    Đặt phòng
+                                    <i class="fas fa-angle-left right"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="@Url.Action("Create", "Booking", new { area = "Admin" })" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Đặt phòng mới</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="@Url.Action("Index", "Booking", new { area = "Admin" })" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Danh sách đặt phòng</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Quản lý khách hàng -->
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon fas fa-users"></i>
+                                <p>
+                                    Khách hàng
+                                    <i class="fas fa-angle-left right"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="@Url.Action("Index", "User", new { area = "Admin" })" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Danh sách khách hàng</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="@Url.Action("Index", "Review", new { area = "Admin" })" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Đánh giá của khách</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Quản lý dịch vụ -->
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon fas fa-concierge-bell"></i>
+                                <p>
+                                    Dịch vụ
+                                    <i class="fas fa-angle-left right"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="@Url.Action("Index", "Service", new { area = "Admin" })" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Danh sách dịch vụ</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Tài chính -->
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon fas fa-money-bill-wave"></i>
+                                <p>
+                                    Tài chính
+                                    <i class="fas fa-angle-left right"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="@Url.Action("Index", "Payment", new { area = "Admin" })" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Thanh toán</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Khuyến mãi -->
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "Promotion", new { area = "Admin" })" class="nav-link">
+                                <i class="nav-icon fas fa-tags"></i>
+                                <p>Khuyến mãi</p>
+                            </a>
+                        </li>
+
+                        <!-- Bài viết -->
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "BlogPost", new { area = "Admin" })" class="nav-link">
+                                <i class="nav-icon fas fa-newspaper"></i>
+                                <p>Bài viết</p>
+                            </a>
+                        </li>
+
+                        <!-- Cài đặt -->
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon fas fa-cog"></i>
+                                <p>
+                                    Cài đặt
+                                    <i class="fas fa-angle-left right"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="@Url.Action("Index", "Hotel", new { area = "Admin" })" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Thông tin khách sạn</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Đăng xuất -->
+                        <li class="nav-item">
+                            <a href="@Url.Action("Logout", "Account", new { area = "" })" class="nav-link">
+                                <i class="nav-icon fas fa-sign-out-alt"></i>
+                                <p>Đăng xuất</p>
+                            </a>
+                        </li>
+
+                    </ul>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            @RenderBody()
+        </div>
 
         <!-- Footer -->
         <footer class="main-footer">
@@ -85,8 +254,12 @@
     <!-- jQuery -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <!-- Bootstrap 4 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
     <!-- AdminLTE App -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/js/adminlte.min.js"></script>
+
+    <script src="~/js/admin-menu-state.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

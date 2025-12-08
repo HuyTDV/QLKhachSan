@@ -1,0 +1,220 @@
+﻿@model QLKhachSan.Models.Payment
+
+@{
+    ViewData["Title"] = "Chi tiết thanh toán";
+}
+
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Chi tiết thanh toán #@Model.PaymentId</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Thanh toán</a></li>
+                    <li class="breadcrumb-item active">Chi tiết</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Thông tin thanh toán -->
+                <div class="card card-success">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-receipt"></i> Thông tin thanh toán
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th width="30%">Mã thanh toán</th>
+                                <td><strong>#@Model.PaymentId</strong></td>
+                            </tr>
+                            <tr>
+                                <th>Booking liên quan</th>
+                                <td>
+                                    <a asp-controller="Booking" asp-action="Details" asp-route-id="@Model.BookingId" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-link"></i> Booking #@Model.BookingId
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Khách hàng</th>
+                                <td>
+                                    <strong>@(Model.Booking?.User?.FullName ?? "N/A")</strong>
+                                    @if (Model.Booking?.User != null)
+                                    {
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-envelope"></i> @Model.Booking.User.Email<br>
+                                            <i class="fas fa-phone"></i> @Model.Booking.User.Phone
+                                        </small>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Phòng</th>
+                                <td>
+                                    @if (Model.Booking?.Room != null)
+                                    {
+                                        <strong>Phòng @Model.Booking.Room.RoomNumber</strong>
+                                        <br>
+                                        <small class="text-muted">@Model.Booking.Room.RoomType</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">N/A</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Số tiền</th>
+                                <td>
+                                    <h3 class="text-success mb-0">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        @Model.Amount?.ToString("N0") ₫
+                                    </h3>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Phương thức thanh toán</th>
+                                <td>
+                                    @if (Model.PaymentMethod == "Credit Card")
+                                    {
+                                        <span class="badge badge-primary badge-lg">
+                                            <i class="fas fa-credit-card"></i> Thẻ tín dụng
+                                        </span>
+                                    }
+                                    else if (Model.PaymentMethod == "Cash")
+                                    {
+                                        <span class="badge badge-success badge-lg">
+                                            <i class="fas fa-money-bill"></i> Tiền mặt
+                                        </span>
+                                    }
+                                    else if (Model.PaymentMethod == "Bank Transfer")
+                                    {
+                                        <span class="badge badge-info badge-lg">
+                                            <i class="fas fa-university"></i> Chuyển khoản
+                                        </span>
+                                    }
+                                    else if (Model.PaymentMethod == "E-wallet")
+                                    {
+                                        <span class="badge badge-warning badge-lg">
+                                            <i class="fas fa-wallet"></i> Ví điện tử
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary badge-lg">@Model.PaymentMethod</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Mã giao dịch</th>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(Model.TransactionCode))
+                                    {
+                                        <code class="h5">@Model.TransactionCode</code>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Không có</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Ngày thanh toán</th>
+                                <td>
+                                    <i class="fas fa-calendar-check text-success"></i>
+                                    @Model.PaidAt?.ToString("dd/MM/yyyy HH:mm:ss")
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Ghi chú</th>
+                                <td>@(Model.Notes ?? "Không có ghi chú")</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="card-footer">
+                        <a asp-action="Edit" asp-route-id="@Model.PaymentId" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Chỉnh sửa
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@Model.PaymentId" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Xóa
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- Thống kê -->
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">Thông tin booking</h3>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Booking != null)
+                        {
+                            <dl class="row">
+                                <dt class="col-sm-5">Check-in:</dt>
+                                <dd class="col-sm-7">@Model.Booking.CheckIn?.ToString("dd/MM/yyyy")</dd>
+
+                                <dt class="col-sm-5">Check-out:</dt>
+                                <dd class="col-sm-7">@Model.Booking.CheckOut?.ToString("dd/MM/yyyy")</dd>
+
+                                <dt class="col-sm-5">Tổng tiền booking:</dt>
+                                <dd class="col-sm-7">
+                                    <strong>@Model.Booking.TotalPrice?.ToString("N0") ₫</strong>
+                                </dd>
+
+                                <dt class="col-sm-5">Trạng thái:</dt>
+                                <dd class="col-sm-7">
+                                    @if (Model.Booking.Status == "Confirmed")
+                                    {
+                                        <span class="badge badge-success">Đã xác nhận</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary">@Model.Booking.Status</span>
+                                    }
+                                </dd>
+                            </dl>
+                        }
+                        else
+                        {
+                            <p class="text-muted">Không có thông tin booking</p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Quick actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Thao tác nhanh</h3>
+                    </div>
+                    <div class="card-body">
+                        <a href="#" class="btn btn-info btn-block">
+                            <i class="fas fa-print"></i> In hóa đơn
+                        </a>
+                        <a href="#" class="btn btn-success btn-block">
+                            <i class="fas fa-envelope"></i> Gửi email xác nhận
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

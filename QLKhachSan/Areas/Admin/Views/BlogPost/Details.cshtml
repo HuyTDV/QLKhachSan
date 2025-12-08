@@ -1,0 +1,51 @@
+﻿@model QLKhachSan.Models.BlogPost
+
+@{
+    ViewData["Title"] = "Chi tiết Bài viết";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Chi tiết Bài viết</h3>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">ID</dt>
+                        <dd class="col-sm-9">@Model.PostId</dd>
+
+                        <dt class="col-sm-3">Tiêu đề</dt>
+                        <dd class="col-sm-9">@Model.Title</dd>
+
+                        <dt class="col-sm-3">Nội dung</dt>
+                        <dd class="col-sm-9">
+                            <div style="white-space: pre-wrap;">@Model.Content</div>
+                        </dd>
+
+                        <dt class="col-sm-3">Tác giả</dt>
+                        <dd class="col-sm-9">@Model.Author?.FullName</dd>
+
+                        <dt class="col-sm-3">Email tác giả</dt>
+                        <dd class="col-sm-9">@Model.Author?.Email</dd>
+
+                        <dt class="col-sm-3">Ngày tạo</dt>
+                        <dd class="col-sm-9">@Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</dd>
+                    </dl>
+                </div>
+                <div class="card-footer">
+                    <a asp-action="Edit" asp-route-id="@Model.PostId" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Sửa
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@Model.PostId" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Xóa
+                    </a>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

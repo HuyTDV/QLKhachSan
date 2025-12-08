@@ -1,0 +1,90 @@
+﻿@model QLKhachSan.Models.Promotion
+
+@{
+    ViewData["Title"] = "Xóa Khuyến mãi";
+    var today = DateOnly.FromDateTime(DateTime.Now);
+    var isActive = Model.StartDate <= today && Model.EndDate >= today;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title">Xác nhận xóa Khuyến mãi</h3>
+                </div>
+                <div class="card-body">
+                    <h4 class="text-danger">Bạn có chắc chắn muốn xóa khuyến mãi này?</h4>
+
+                    @if (isActive)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Cảnh báo:</strong> Khuyến mãi này đang được áp dụng!
+                        </div>
+                    }
+
+                    <hr />
+
+                    <dl class="row">
+                        <dt class="col-sm-4">ID</dt>
+                        <dd class="col-sm-8">@Model.PromotionId</dd>
+
+                        <dt class="col-sm-4">Mã khuyến mãi</dt>
+                        <dd class="col-sm-8">
+                            <strong class="text-primary" style="font-size: 1.2em;">@Model.Code</strong>
+                        </dd>
+
+                        <dt class="col-sm-4">Mô tả</dt>
+                        <dd class="col-sm-8">@Model.Description</dd>
+
+                        <dt class="col-sm-4">Phần trăm giảm giá</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge badge-success" style="font-size: 1.2em;">
+                                <i class="fas fa-percentage"></i> @Model.DiscountPercent%
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-4">Ngày bắt đầu</dt>
+                        <dd class="col-sm-8">@Model.StartDate?.ToString("dd/MM/yyyy")</dd>
+
+                        <dt class="col-sm-4">Ngày kết thúc</dt>
+                        <dd class="col-sm-8">@Model.EndDate?.ToString("dd/MM/yyyy")</dd>
+
+                        <dt class="col-sm-4">Trạng thái</dt>
+                        <dd class="col-sm-8">
+                            @if (isActive)
+                            {
+                                <span class="badge badge-success">
+                                    <i class="fas fa-check-circle"></i> Đang áp dụng
+                                </span>
+                            }
+                            else if (Model.StartDate > today)
+                            {
+                                <span class="badge badge-info">
+                                    <i class="fas fa-clock"></i> Sắp diễn ra
+                                </span>
+                            }
+                            else if (Model.EndDate < today)
+                            {
+                                <span class="badge badge-danger">
+                                    <i class="fas fa-times-circle"></i> Đã hết hạn
+                                </span>
+                            }
+                        </dd>
+                    </dl>
+
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="PromotionId" />
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Xóa
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Hủy
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

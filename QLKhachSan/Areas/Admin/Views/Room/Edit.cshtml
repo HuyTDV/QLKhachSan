@@ -1,0 +1,127 @@
+﻿@model QLKhachSan.Models.Room
+
+@{
+    ViewData["Title"] = "Sửa thông tin phòng";
+}
+
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Sửa thông tin phòng</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home", new { area = "Admin" })">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Danh sách phòng</a></li>
+                    <li class="breadcrumb-item active">Sửa</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Cập nhật phòng: <strong>@Model.RoomNumber</strong></h3>
+                    </div>
+                    <form asp-action="Edit" method="post">
+                        <div class="card-body">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                            <input type="hidden" asp-for="RoomId" />
+                            <input type="hidden" asp-for="CreatedAt" />
+
+                            <div class="form-group">
+                                <label asp-for="BranchId" class="control-label">Chi nhánh <span class="text-danger">*</span></label>
+                                <select asp-for="BranchId" class="form-control" asp-items="ViewBag.BranchId">
+                                    <option value="">-- Chọn chi nhánh --</option>
+                                </select>
+                                <span asp-validation-for="BranchId" class="text-danger"></span>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="RoomNumber" class="control-label">Số phòng <span class="text-danger">*</span></label>
+                                        <input asp-for="RoomNumber" class="form-control" />
+                                        <span asp-validation-for="RoomNumber" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="RoomType" class="control-label">Loại phòng <span class="text-danger">*</span></label>
+                                        <input asp-for="RoomType" class="form-control" />
+                                        <span asp-validation-for="RoomType" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Capacity" class="control-label">Sức chứa (người)</label>
+                                        <input asp-for="Capacity" type="number" class="form-control" min="1" max="10" />
+                                        <span asp-validation-for="Capacity" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Price" class="control-label">Giá phòng (VNĐ) <span class="text-danger">*</span></label>
+                                        <input asp-for="Price" type="number" class="form-control" step="1000" min="0" />
+                                        <span asp-validation-for="Price" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Amenities" class="control-label">Tiện nghi</label>
+                                <input asp-for="Amenities" class="form-control" />
+                                <small class="form-text text-muted">Phân cách bằng dấu phẩy</small>
+                                <span asp-validation-for="Amenities" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Status" class="control-label">Trạng thái</label>
+                                <select asp-for="Status" class="form-control" asp-items="ViewBag.StatusList"></select>
+                                <span asp-validation-for="Status" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="ImageUrl" class="control-label">URL Hình ảnh</label>
+                                <input asp-for="ImageUrl" class="form-control" />
+                                <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                            </div>
+
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>Ngày tạo:</strong> @Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Cập nhật
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

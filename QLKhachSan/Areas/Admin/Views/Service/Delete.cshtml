@@ -1,0 +1,59 @@
+﻿@model QLKhachSan.Models.Service
+
+@{
+    ViewData["Title"] = "Xóa Dịch vụ";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title">Xác nhận xóa Dịch vụ</h3>
+                </div>
+                <div class="card-body">
+                    <h4 class="text-danger">Bạn có chắc chắn muốn xóa dịch vụ này?</h4>
+                    <hr />
+
+                    <div class="card card-outline card-primary mb-3">
+                        <div class="card-body">
+                            <dl class="row mb-0">
+                                <dt class="col-sm-4">ID</dt>
+                                <dd class="col-sm-8">@Model.ServiceId</dd>
+
+                                <dt class="col-sm-4">Tên dịch vụ</dt>
+                                <dd class="col-sm-8">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-concierge-bell text-primary"></i>
+                                        <strong>@Model.ServiceName</strong>
+                                    </h5>
+                                </dd>
+
+                                <dt class="col-sm-4">Mô tả</dt>
+                                <dd class="col-sm-8">@Model.Description</dd>
+
+                                <dt class="col-sm-4">Giá dịch vụ</dt>
+                                <dd class="col-sm-8">
+                                    <h4 class="text-success mb-0">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        @Model.Price?.ToString("N0") VNĐ
+                                    </h4>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="ServiceId" />
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Xóa
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Hủy
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

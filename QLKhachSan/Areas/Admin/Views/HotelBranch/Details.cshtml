@@ -1,0 +1,177 @@
+﻿@model QLKhachSan.Models.HotelBranch
+
+@{
+    ViewData["Title"] = "Chi tiết Chi nhánh";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title">Chi tiết Chi nhánh</h3>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">ID</dt>
+                        <dd class="col-sm-9">@Model.BranchId</dd>
+
+                        <dt class="col-sm-3">Khách sạn</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge badge-primary" style="font-size: 1.1em;">
+                                @Model.Hotel?.HotelName
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-3">Tên chi nhánh</dt>
+                        <dd class="col-sm-9"><h4>@Model.BranchName</h4></dd>
+
+                        <dt class="col-sm-3">Địa chỉ đầy đủ</dt>
+                        <dd class="col-sm-9">
+                            <i class="fas fa-map-marker-alt text-danger"></i>
+                            @Model.Address, @Model.City, @Model.Country
+                        </dd>
+
+                        <dt class="col-sm-3">Thành phố</dt>
+                        <dd class="col-sm-9">@Model.City</dd>
+
+                        <dt class="col-sm-3">Quốc gia</dt>
+                        <dd class="col-sm-9">@Model.Country</dd>
+
+                        <dt class="col-sm-3">Quản lý</dt>
+                        <dd class="col-sm-9">
+                            @if (Model.Manager != null)
+                            {
+                                <div>
+                                    <i class="fas fa-user-tie"></i> <strong>@Model.Manager.FullName</strong>
+                                    <br />
+                                    <small class="text-muted">
+                                        <i class="fas fa-envelope"></i> @Model.Manager.Email
+                                    </small>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chưa có quản lý</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-3">Điện thoại</dt>
+                        <dd class="col-sm-9">
+                            <i class="fas fa-phone text-success"></i> @Model.Phone
+                        </dd>
+                    </dl>
+
+                    <hr />
+
+                    <h5 class="mb-3">
+                        <i class="fas fa-door-open"></i> Danh sách Phòng
+                        <span class="badge badge-info">@Model.Rooms.Count</span>
+                    </h5>
+
+                    @if (Model.Rooms.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Số phòng</th>
+                                        <th>Loại phòng</th>
+                                        <th>Sức chứa</th>
+                                        <th>Giá</th>
+                                        <th>Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var room in Model.Rooms)
+                                    {
+                                        <tr>
+                                            <td><strong>@room.RoomNumber</strong></td>
+                                            <td>@room.RoomType</td>
+                                            <td>@room.Capacity người</td>
+                                            <td>@room.Price?.ToString("N0") VNĐ</td>
+                                            <td>
+                                                @if (room.Status == "Available")
+                                                {
+                                                    <span class="badge badge-success">Sẵn sàng</span>
+                                                }
+                                                else if (room.Status == "Booked")
+                                                {
+                                                    <span class="badge badge-warning">Đã đặt</span>
+                                                }
+                                                else if (room.Status == "Maintenance")
+                                                {
+                                                    <span class="badge badge-danger">Bảo trì</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-secondary">@room.Status</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-3">
+                                <div class="info-box bg-success">
+                                    <span class="info-box-icon"><i class="fas fa-check"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Sẵn sàng</span>
+                                        <span class="info-box-number">@Model.Rooms.Count(r => r.Status == "Available")</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="info-box bg-warning">
+                                    <span class="info-box-icon"><i class="fas fa-calendar-check"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Đã đặt</span>
+                                        <span class="info-box-number">@Model.Rooms.Count(r => r.Status == "Booked")</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="info-box bg-danger">
+                                    <span class="info-box-icon"><i class="fas fa-tools"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Bảo trì</span>
+                                        <span class="info-box-number">@Model.Rooms.Count(r => r.Status == "Maintenance")</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="info-box bg-info">
+                                    <span class="info-box-icon"><i class="fas fa-door-open"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Tổng phòng</span>
+                                        <span class="info-box-number">@Model.Rooms.Count</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Chưa có phòng nào thuộc chi nhánh này.
+                        </div>
+                    }
+                </div>
+                <div class="card-footer">
+                    <a asp-action="Edit" asp-route-id="@Model.BranchId" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Sửa
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@Model.BranchId" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Xóa
+                    </a>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

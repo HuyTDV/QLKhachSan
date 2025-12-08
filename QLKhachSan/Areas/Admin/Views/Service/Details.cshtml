@@ -1,0 +1,129 @@
+﻿@model QLKhachSan.Models.Service
+
+@{
+    ViewData["Title"] = "Chi tiết Dịch vụ";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card card-outline card-primary">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title">
+                        <i class="fas fa-concierge-bell"></i> Chi tiết Dịch vụ
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="service-icon mb-3">
+                            <i class="fas fa-concierge-bell fa-5x text-primary"></i>
+                        </div>
+                        <h2 class="mb-3">@Model.ServiceName</h2>
+                        <h3 class="text-success">
+                            <i class="fas fa-money-bill-wave"></i>
+                            @Model.Price?.ToString("N0") VNĐ
+                        </h3>
+                    </div>
+
+                    <hr />
+
+                    <dl class="row">
+                        <dt class="col-sm-3">ID Dịch vụ</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge badge-secondary">@Model.ServiceId</span>
+                        </dd>
+
+                        <dt class="col-sm-3">Tên dịch vụ</dt>
+                        <dd class="col-sm-9">
+                            <strong>@Model.ServiceName</strong>
+                        </dd>
+
+                        <dt class="col-sm-3">Mô tả chi tiết</dt>
+                        <dd class="col-sm-9">
+                            @if (!string.IsNullOrEmpty(Model.Description))
+                            {
+                                <p class="lead">@Model.Description</p>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chưa có mô tả</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-3">Giá dịch vụ</dt>
+                        <dd class="col-sm-9">
+                            <div class="info-box bg-success">
+                                <span class="info-box-icon">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Giá</span>
+                                    <span class="info-box-number">
+                                        @Model.Price?.ToString("N0") VNĐ
+                                    </span>
+                                </div>
+                            </div>
+                        </dd>
+                    </dl>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Lưu ý:</strong> Giá dịch vụ có thể thay đổi tùy theo chương trình khuyến mãi và thời điểm sử dụng.
+                    </div>
+
+                    @if (Model.Price.HasValue)
+                    {
+                        <hr />
+                        <h5 class="mb-3">Ước tính chi phí</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="small-box bg-info">
+                                    <div class="inner">
+                                        <h4>@((Model.Price.Value * 1).ToString("N0")) VNĐ</h4>
+                                        <p>1 lần sử dụng</p>
+                                    </div>
+                                    <div class="icon">
+                                        <i class="fas fa-calculator"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="small-box bg-success">
+                                    <div class="inner">
+                                        <h4>@((Model.Price.Value * 3).ToString("N0")) VNĐ</h4>
+                                        <p>3 lần sử dụng</p>
+                                    </div>
+                                    <div class="icon">
+                                        <i class="fas fa-calculator"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="small-box bg-warning">
+                                    <div class="inner">
+                                        <h4>@((Model.Price.Value * 7).ToString("N0")) VNĐ</h4>
+                                        <p>7 lần sử dụng</p>
+                                    </div>
+                                    <div class="icon">
+                                        <i class="fas fa-calculator"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="card-footer">
+                    <a asp-action="Edit" asp-route-id="@Model.ServiceId" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Sửa
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@Model.ServiceId" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Xóa
+                    </a>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

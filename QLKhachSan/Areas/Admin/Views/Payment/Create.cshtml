@@ -1,0 +1,102 @@
+﻿@model QLKhachSan.Models.Payment
+
+@{
+    ViewData["Title"] = "Thêm thanh toán";
+}
+
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Thêm thanh toán mới</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Thanh toán</a></li>
+                    <li class="breadcrumb-item active">Tạo mới</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card card-success">
+                    <div class="card-header">
+                        <h3 class="card-title">Thông tin thanh toán</h3>
+                    </div>
+                    <form asp-action="Create" method="post">
+                        <div class="card-body">
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                            <div class="form-group">
+                                <label asp-for="BookingId" class="control-label">Booking <span class="text-danger">*</span></label>
+                                <select asp-for="BookingId" class="form-control" asp-items="ViewBag.BookingId">
+                                    <option value="">-- Chọn booking --</option>
+                                </select>
+                                <span asp-validation-for="BookingId" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Amount" class="control-label">Số tiền (VNĐ) <span class="text-danger">*</span></label>
+                                <input asp-for="Amount" type="number" class="form-control" placeholder="Nhập số tiền" />
+                                <span asp-validation-for="Amount" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="PaymentMethod" class="control-label">Phương thức thanh toán <span class="text-danger">*</span></label>
+                                <select asp-for="PaymentMethod" class="form-control">
+                                    <option value="">-- Chọn phương thức --</option>
+                                    <option value="Cash">Tiền mặt</option>
+                                    <option value="Credit Card">Thẻ tín dụng</option>
+                                    <option value="Bank Transfer">Chuyển khoản ngân hàng</option>
+                                    <option value="E-wallet">Ví điện tử (Momo, ZaloPay...)</option>
+                                </select>
+                                <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="TransactionCode" class="control-label">Mã giao dịch</label>
+                                <input asp-for="TransactionCode" class="form-control" placeholder="Ví dụ: TXN20251209A" />
+                                <small class="form-text text-muted">Để trống nếu thanh toán bằng tiền mặt</small>
+                                <span asp-validation-for="TransactionCode" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Notes" class="control-label">Ghi chú</label>
+                                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Ghi chú về thanh toán..."></textarea>
+                                <span asp-validation-for="Notes" class="text-danger"></span>
+                            </div>
+
+                            <div class="alert alert-info">
+                                <i class="icon fas fa-info-circle"></i>
+                                <strong>Lưu ý:</strong> Ngày thanh toán sẽ được tự động ghi nhận là thời điểm hiện tại.
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Lưu
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

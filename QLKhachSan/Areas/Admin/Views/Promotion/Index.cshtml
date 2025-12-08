@@ -1,0 +1,101 @@
+﻿@model IEnumerable<QLKhachSan.Models.Promotion>
+
+@{
+    ViewData["Title"] = "Quản lý Khuyến mãi";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">Danh sách Khuyến mãi</h3>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Thêm mới
+                    </a>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show">
+                            @TempData["Success"]
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        </div>
+                    }
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Mã khuyến mãi</th>
+                                    <th>Mô tả</th>
+                                    <th>Giảm giá</th>
+                                    <th>Ngày bắt đầu</th>
+                                    <th>Ngày kết thúc</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    var today = DateOnly.FromDateTime(DateTime.Now);
+                                    var isActive = item.StartDate <= today && item.EndDate >= today;
+                                    var isUpcoming = item.StartDate > today;
+                                    var isExpired = item.EndDate < today;
+
+                                    <tr>
+                                        <td>@item.PromotionId</td>
+                                        <td>
+                                            <strong class="text-primary">@item.Code</strong>
+                                        </td>
+                                        <td>@item.Description</td>
+                                        <td>
+                                            <span class="badge badge-success" style="font-size: 1em;">
+                                                <i class="fas fa-percentage"></i> @item.DiscountPercent%
+                                            </span>
+                                        </td>
+                                        <td>@item.StartDate?.ToString("dd/MM/yyyy")</td>
+                                        <td>@item.EndDate?.ToString("dd/MM/yyyy")</td>
+                                        <td>
+                                            @if (isActive)
+                                            {
+                                                <span class="badge badge-success">
+                                                    <i class="fas fa-check-circle"></i> Đang áp dụng
+                                                </span>
+                                            }
+                                            else if (isUpcoming)
+                                            {
+                                                <span class="badge badge-info">
+                                                    <i class="fas fa-clock"></i> Sắp diễn ra
+                                                </span>
+                                            }
+                                            else if (isExpired)
+                                            {
+                                                <span class="badge badge-danger">
+                                                    <i class="fas fa-times-circle"></i> Đã hết hạn
+                                                </span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a asp-action="Details" asp-route-id="@item.PromotionId" class="btn btn-info btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@item.PromotionId" class="btn btn-warning btn-sm">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@item.PromotionId" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

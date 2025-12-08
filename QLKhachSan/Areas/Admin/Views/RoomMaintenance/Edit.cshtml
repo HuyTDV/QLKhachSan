@@ -1,0 +1,108 @@
+﻿@model QLKhachSan.Models.RoomMaintenance
+
+@{
+    ViewData["Title"] = "Chỉnh sửa bảo trì";
+}
+
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Chỉnh sửa bảo trì #@Model.MaintenanceId</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Bảo trì</a></li>
+                    <li class="breadcrumb-item active">Chỉnh sửa</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card card-warning">
+                    <div class="card-header">
+                        <h3 class="card-title">Cập nhật thông tin bảo trì</h3>
+                    </div>
+                    <form asp-action="Edit" method="post">
+                        <div class="card-body">
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                            <input type="hidden" asp-for="MaintenanceId" />
+
+                            <div class="form-group">
+                                <label asp-for="RoomId" class="control-label">Phòng <span class="text-danger">*</span></label>
+                                <select asp-for="RoomId" class="form-control" asp-items="ViewBag.RoomId">
+                                    <option value="">-- Chọn phòng --</option>
+                                </select>
+                                <span asp-validation-for="RoomId" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Description" class="control-label">Mô tả vấn đề <span class="text-danger">*</span></label>
+                                <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="StaffId" class="control-label">Nhân viên phụ trách</label>
+                                <select asp-for="StaffId" class="form-control" asp-items="ViewBag.StaffId">
+                                    <option value="">-- Chọn nhân viên --</option>
+                                </select>
+                                <span asp-validation-for="StaffId" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="MaintenanceDate" class="control-label">Ngày bảo trì</label>
+                                <input asp-for="MaintenanceDate" type="datetime-local" class="form-control" />
+                                <span asp-validation-for="MaintenanceDate" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Status" class="control-label">Trạng thái <span class="text-danger">*</span></label>
+                                <select asp-for="Status" class="form-control">
+                                    <option value="Pending">Chờ xử lý</option>
+                                    <option value="In Progress">Đang thực hiện</option>
+                                    <option value="Completed">Hoàn thành</option>
+                                    <option value="Cancelled">Đã hủy</option>
+                                </select>
+                                <span asp-validation-for="Status" class="text-danger"></span>
+                            </div>
+
+                            <div class="alert alert-warning">
+                                <i class="icon fas fa-exclamation-triangle"></i>
+                                <strong>Lưu ý:</strong>
+                                <ul class="mb-0">
+                                    <li>Nếu chuyển trạng thái sang "Hoàn thành", phòng sẽ tự động chuyển về "Available"</li>
+                                    <li>Nếu chọn "Đang thực hiện", phòng sẽ chuyển sang "Maintenance"</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save"></i> Cập nhật
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

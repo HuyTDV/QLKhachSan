@@ -1,0 +1,65 @@
+﻿@model QLKhachSan.Models.HotelBranch
+
+@{
+    ViewData["Title"] = "Xóa Chi nhánh";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title">Xác nhận xóa Chi nhánh</h3>
+                </div>
+                <div class="card-body">
+                    <h4 class="text-danger">Bạn có chắc chắn muốn xóa chi nhánh này?</h4>
+                    <p class="text-muted">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Cảnh báo:</strong> Xóa chi nhánh sẽ ảnh hưởng đến tất cả phòng thuộc chi nhánh này!
+                    </p>
+                    <hr />
+
+                    <dl class="row">
+                        <dt class="col-sm-4">ID</dt>
+                        <dd class="col-sm-8">@Model.BranchId</dd>
+
+                        <dt class="col-sm-4">Khách sạn</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge badge-primary">@Model.Hotel?.HotelName</span>
+                        </dd>
+
+                        <dt class="col-sm-4">Tên chi nhánh</dt>
+                        <dd class="col-sm-8"><strong>@Model.BranchName</strong></dd>
+
+                        <dt class="col-sm-4">Địa chỉ</dt>
+                        <dd class="col-sm-8">@Model.Address</dd>
+
+                        <dt class="col-sm-4">Thành phố</dt>
+                        <dd class="col-sm-8">@Model.City</dd>
+
+                        <dt class="col-sm-4">Quốc gia</dt>
+                        <dd class="col-sm-8">@Model.Country</dd>
+
+                        <dt class="col-sm-4">Quản lý</dt>
+                        <dd class="col-sm-8">@Model.Manager?.FullName</dd>
+
+                        <dt class="col-sm-4">Điện thoại</dt>
+                        <dd class="col-sm-8">
+                            <i class="fas fa-phone"></i> @Model.Phone
+                        </dd>
+                    </dl>
+
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="BranchId" />
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Xóa
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Hủy
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,100 @@
+﻿@model QLKhachSan.Models.Promotion
+
+@{
+    ViewData["Title"] = "Thêm Khuyến mãi";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Thêm Khuyến mãi mới</h3>
+                </div>
+                <form asp-action="Create" method="post">
+                    <div class="card-body">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="form-group">
+                            <label asp-for="Code" class="control-label">Mã khuyến mãi <span class="text-danger">*</span></label>
+                            <input asp-for="Code" class="form-control text-uppercase" placeholder="Vd: SUMMER2025" required style="font-weight: bold;" />
+                            <small class="form-text text-muted">Mã phải là duy nhất, viết hoa, không có khoảng trắng</small>
+                            <span asp-validation-for="Code" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Description" class="control-label">Mô tả</label>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Nhập mô tả về chương trình khuyến mãi"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="DiscountPercent" class="control-label">Phần trăm giảm giá <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input asp-for="DiscountPercent" type="number" step="0.01" min="0" max="100" class="form-control" placeholder="Vd: 15.00" required />
+                                <div class="input-group-append">
+                                    <span class="input-group-text"><i class="fas fa-percentage"></i></span>
+                                </div>
+                            </div>
+                            <span asp-validation-for="DiscountPercent" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="StartDate" class="control-label">Ngày bắt đầu <span class="text-danger">*</span></label>
+                                    <input asp-for="StartDate" type="date" class="form-control" required />
+                                    <span asp-validation-for="StartDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="EndDate" class="control-label">Ngày kết thúc <span class="text-danger">*</span></label>
+                                    <input asp-for="EndDate" type="date" class="form-control" required />
+                                    <span asp-validation-for="EndDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Lưu ý:</strong> Ngày kết thúc phải sau ngày bắt đầu
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Lưu
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Tự động viết hoa mã khuyến mãi
+        document.querySelector('input[name="Code"]').addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase().replace(/\s/g, '');
+        });
+
+        // Validate ngày
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const startDate = new Date(document.querySelector('input[name="StartDate"]').value);
+            const endDate = new Date(document.querySelector('input[name="EndDate"]').value);
+
+            if (endDate <= startDate) {
+                e.preventDefault();
+                alert('Ngày kết thúc phải sau ngày bắt đầu!');
+            }
+        });
+    </script>
+}

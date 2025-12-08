@@ -1,0 +1,165 @@
+﻿@model QLKhachSan.Models.Review
+
+@{
+    ViewData["Title"] = "Chi tiết Đánh giá";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title">
+                        <i class="fas fa-comment-dots"></i> Chi tiết Đánh giá
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Thông tin khách hàng -->
+                        <div class="col-md-6">
+                            <div class="card card-outline card-info">
+                                <div class="card-header">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-user"></i> Thông tin khách hàng
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <dl class="row mb-0">
+                                        <dt class="col-sm-4">Họ tên</dt>
+                                        <dd class="col-sm-8"><strong>@Model.User?.FullName</strong></dd>
+
+                                        <dt class="col-sm-4">Email</dt>
+                                        <dd class="col-sm-8">@Model.User?.Email</dd>
+
+                                        <dt class="col-sm-4">Điện thoại</dt>
+                                        <dd class="col-sm-8">@Model.User?.Phone</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin phòng -->
+                        <div class="col-md-6">
+                            <div class="card card-outline card-secondary">
+                                <div class="card-header">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-door-open"></i> Thông tin phòng
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <dl class="row mb-0">
+                                        <dt class="col-sm-4">Số phòng</dt>
+                                        <dd class="col-sm-8">
+                                            <span class="badge badge-secondary" style="font-size: 1em;">
+                                                @Model.Room?.RoomNumber
+                                            </span>
+                                        </dd>
+
+                                        <dt class="col-sm-4">Loại phòng</dt>
+                                        <dd class="col-sm-8">@Model.Room?.RoomType</dd>
+
+                                        <dt class="col-sm-4">Giá phòng</dt>
+                                        <dd class="col-sm-8">@Model.Room?.Price?.ToString("N0") VNĐ</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <!-- Đánh giá -->
+                    <div class="card card-outline card-warning">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="fas fa-star"></i> Đánh giá của khách
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-2">Điểm số</dt>
+                                <dd class="col-sm-10">
+                                    <div class="mb-2">
+                                        @if (Model.Rating.HasValue)
+                                        {
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                if (i <= Model.Rating.Value)
+                                                {
+                                                    <i class="fas fa-star text-warning" style="font-size: 2em;"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="far fa-star text-muted" style="font-size: 2em;"></i>
+                                                }
+                                            }
+                                            <h3 class="d-inline ml-3">@Model.Rating / 5</h3>
+                                        }
+                                    </div>
+                                </dd>
+
+                                <dt class="col-sm-2">Nhận xét</dt>
+                                <dd class="col-sm-10">
+                                    <div class="bg-light p-3 rounded">
+                                        <p class="mb-0" style="font-size: 1.1em;">
+                                            <i class="fas fa-quote-left text-muted"></i>
+                                            @Model.Comment
+                                            <i class="fas fa-quote-right text-muted"></i>
+                                        </p>
+                                    </div>
+                                </dd>
+
+                                <dt class="col-sm-2">Ngày đánh giá</dt>
+                                <dd class="col-sm-10">
+                                    <i class="fas fa-calendar"></i>
+                                    @Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <!-- Phản hồi -->
+                    <div class="card card-outline @(string.IsNullOrEmpty(Model.Reply) ? "card-danger" : "card-success")">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="fas fa-reply"></i> Phản hồi từ khách sạn
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            @if (string.IsNullOrEmpty(Model.Reply))
+                            {
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <strong>Chưa có phản hồi!</strong>
+                                    <a asp-action="Edit" asp-route-id="@Model.ReviewId" class="btn btn-sm btn-primary ml-2">
+                                        <i class="fas fa-reply"></i> Phản hồi ngay
+                                    </a>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="bg-light p-3 rounded border-left border-success" style="border-left-width: 5px !important;">
+                                    <p class="mb-0" style="font-size: 1.1em;">
+                                        <i class="fas fa-reply text-success"></i>
+                                        @Model.Reply
+                                    </p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a asp-action="Edit" asp-route-id="@Model.ReviewId" class="btn btn-warning">
+                        <i class="fas fa-reply"></i> @(string.IsNullOrEmpty(Model.Reply) ? "Phản hồi" : "Sửa phản hồi")
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@Model.ReviewId" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Xóa
+                    </a>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

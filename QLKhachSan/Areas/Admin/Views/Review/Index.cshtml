@@ -1,0 +1,177 @@
+﻿@model IEnumerable<QLKhachSan.Models.Review>
+
+@{
+    ViewData["Title"] = "Quản lý Đánh giá";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">Danh sách Đánh giá</h3>
+                    <div>
+                        <span class="badge badge-info mr-2">
+                            Tổng: @Model.Count() đánh giá
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show">
+                            @TempData["Success"]
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        </div>
+                    }
+
+                    <!-- Thống kê nhanh -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <div class="info-box bg-warning">
+                                <span class="info-box-icon"><i class="fas fa-star"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Điểm trung bình</span>
+                                    <span class="info-box-number">
+                                        @if (Model.Any())
+                                        {
+                                            @Model.Average(r => r.Rating ?? 0).ToString("F1")
+                                        }
+                                        else
+                                        {
+                                            <text>0.0</text>
+                                        }
+                                        / 5.0
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box bg-success">
+                                <span class="info-box-icon"><i class="fas fa-comments"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Đã phản hồi</span>
+                                    <span class="info-box-number">@Model.Count(r => !string.IsNullOrEmpty(r.Reply))</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box bg-danger">
+                                <span class="info-box-icon"><i class="fas fa-reply"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Chưa phản hồi</span>
+                                    <span class="info-box-number">@Model.Count(r => string.IsNullOrEmpty(r.Reply))</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box bg-info">
+                                <span class="info-box-icon"><i class="fas fa-thumbs-up"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Đánh giá 5 sao</span>
+                                    <span class="info-box-number">@Model.Count(r => r.Rating == 5)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Khách hàng</th>
+                                    <th>Phòng</th>
+                                    <th>Đánh giá</th>
+                                    <th>Nội dung</th>
+                                    <th>Phản hồi</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>@item.ReviewId</td>
+                                        <td>
+                                            <i class="fas fa-user"></i>
+                                            @item.User?.FullName
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-secondary">
+                                                Phòng @item.Room?.RoomNumber
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @if (item.Rating.HasValue)
+                                            {
+                                                <div>
+                                                    @for (int i = 1; i <= 5; i++)
+                                                    {
+                                                        if (i <= item.Rating.Value)
+                                                        {
+                                                            <i class="fas fa-star text-warning"></i>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="far fa-star text-muted"></i>
+                                                        }
+                                                    }
+                                                    <br />
+                                                    <small class="text-muted">(@item.Rating/5)</small>
+                                                </div>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (item.Comment != null && item.Comment.Length > 50)
+                                            {
+                                                @item.Comment.Substring(0, 50)
+                                        
+                                                <text>...</text>
+                                            }
+                                            else
+                                            {
+                                                @item.Comment
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (string.IsNullOrEmpty(item.Reply))
+                                            {
+                                                <span class="badge badge-danger">Chưa phản hồi</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-success">Đã phản hồi</span>
+                                            }
+                                        </td>
+                                        <td>@item.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            <a asp-action="Details" asp-route-id="@item.ReviewId" class="btn btn-info btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@item.ReviewId" class="btn btn-warning btn-sm" title="Phản hồi">
+                                                <i class="fas fa-reply"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@item.ReviewId" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if (!Model.Any())
+                    {
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle"></i>
+                            Chưa có đánh giá nào
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

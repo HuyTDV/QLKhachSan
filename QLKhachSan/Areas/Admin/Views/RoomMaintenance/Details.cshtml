@@ -1,0 +1,219 @@
+﻿@model QLKhachSan.Models.RoomMaintenance
+
+@{
+    ViewData["Title"] = "Chi tiết bảo trì";
+}
+
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Chi tiết bảo trì #@Model.MaintenanceId</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Bảo trì</a></li>
+                    <li class="breadcrumb-item active">Chi tiết</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Thông tin bảo trì -->
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-tools"></i> Thông tin bảo trì
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th width="30%">Mã bảo trì</th>
+                                <td><strong>#@Model.MaintenanceId</strong></td>
+                            </tr>
+                            <tr>
+                                <th>Phòng</th>
+                                <td>
+                                    @if (Model.Room != null)
+                                    {
+                                        <a asp-controller="Room" asp-action="Details" asp-route-id="@Model.RoomId" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-door-open"></i> Phòng @Model.Room.RoomNumber
+                                        </a>
+                                        <br>
+                                        <small class="text-muted">
+                                            Loại: @Model.Room.RoomType<br>
+                                            Giá: @Model.Room.Price?.ToString("N0") ₫/đêm
+                                        </small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">N/A</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Mô tả vấn đề</th>
+                                <td>
+                                    <div class="alert alert-warning mb-0">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        @Model.Description
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Nhân viên phụ trách</th>
+                                <td>
+                                    @if (Model.Staff != null)
+                                    {
+                                        <strong>@Model.Staff.FullName</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-envelope"></i> @Model.Staff.Email<br>
+                                            <i class="fas fa-phone"></i> @Model.Staff.Phone
+                                        </small>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary">Chưa phân công</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Ngày bảo trì</th>
+                                <td>
+                                    <i class="fas fa-calendar text-primary"></i>
+                                    @Model.MaintenanceDate?.ToString("dd/MM/yyyy HH:mm")
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Trạng thái</th>
+                                <td>
+                                    @if (Model.Status == "Completed")
+                                    {
+                                        <span class="badge badge-success badge-lg">
+                                            <i class="fas fa-check-circle"></i> Hoàn thành
+                                        </span>
+                                    }
+                                    else if (Model.Status == "In Progress")
+                                    {
+                                        <span class="badge badge-warning badge-lg">
+                                            <i class="fas fa-spinner"></i> Đang thực hiện
+                                        </span>
+                                    }
+                                    else if (Model.Status == "Pending")
+                                    {
+                                        <span class="badge badge-secondary badge-lg">
+                                            <i class="fas fa-clock"></i> Chờ xử lý
+                                        </span>
+                                    }
+                                    else if (Model.Status == "Cancelled")
+                                    {
+                                        <span class="badge badge-danger badge-lg">
+                                            <i class="fas fa-times-circle"></i> Đã hủy
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-info badge-lg">@Model.Status</span>
+                                    }
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="card-footer">
+                        <a asp-action="Edit" asp-route-id="@Model.MaintenanceId" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Chỉnh sửa
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@Model.MaintenanceId" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Xóa
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- Timeline -->
+                <div class="card card-success">
+                    <div class="card-header">
+                        <h3 class="card-title">Trạng thái phòng</h3>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Room != null)
+                        {
+                            <dl class="row">
+                                <dt class="col-sm-5">Trạng thái:</dt>
+                                <dd class="col-sm-7">
+                                    @if (Model.Room.Status == "Available")
+                                    {
+                                        <span class="badge badge-success">Sẵn sàng</span>
+                                    }
+                                    else if (Model.Room.Status == "Booked")
+                                    {
+                                        <span class="badge badge-warning">Đã đặt</span>
+                                    }
+                                    else if (Model.Room.Status == "Maintenance")
+                                    {
+                                        <span class="badge badge-danger">Bảo trì</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary">@Model.Room.Status</span>
+                                    }
+                                </dd>
+
+                                <dt class="col-sm-5">Chi nhánh:</dt>
+                                <dd class="col-sm-7">@(Model.Room.Branch?.BranchName ?? "N/A")</dd>
+
+                                <dt class="col-sm-5">Sức chứa:</dt>
+                                <dd class="col-sm-7">@Model.Room.Capacity người</dd>
+
+                                <dt class="col-sm-5">Tiện nghi:</dt>
+                                <dd class="col-sm-7">@(Model.Room.Amenities ?? "Không có")</dd>
+                            </dl>
+                        }
+                        else
+                        {
+                            <p class="text-muted">Không có thông tin phòng</p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Quick actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Thao tác nhanh</h3>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Status == "Pending")
+                        {
+                            <a href="#" class="btn btn-warning btn-block">
+                                <i class="fas fa-play"></i> Bắt đầu bảo trì
+                            </a>
+                        }
+                        @if (Model.Status == "In Progress")
+                        {
+                            <a href="#" class="btn btn-success btn-block">
+                                <i class="fas fa-check"></i> Hoàn thành
+                            </a>
+                        }
+                        <a href="#" class="btn btn-info btn-block">
+                            <i class="fas fa-print"></i> In phiếu bảo trì
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,92 @@
+﻿@model QLKhachSan.Models.Review
+
+@{
+    ViewData["Title"] = "Thêm Đánh giá";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Thêm Đánh giá mới</h3>
+                </div>
+                <form asp-action="Create" method="post">
+                    <div class="card-body">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            Thông thường đánh giá được tạo tự động từ khách hàng. Form này dùng cho mục đích quản trị.
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="UserId" class="control-label">Khách hàng <span class="text-danger">*</span></label>
+                            <select asp-for="UserId" class="form-control" asp-items="ViewBag.UserId" required>
+                                <option value="">-- Chọn khách hàng --</option>
+                            </select>
+                            <span asp-validation-for="UserId" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="RoomId" class="control-label">Phòng <span class="text-danger">*</span></label>
+                            <select asp-for="RoomId" class="form-control" asp-items="ViewBag.RoomId" required>
+                                <option value="">-- Chọn phòng --</option>
+                            </select>
+                            <span asp-validation-for="RoomId" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Rating" class="control-label">Đánh giá (1-5 sao) <span class="text-danger">*</span></label>
+                            <div class="rating-input">
+                                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <label class="btn btn-outline-warning">
+                                            <input type="radio" name="Rating" value="@i" required /> @i <i class="fas fa-star"></i>
+                                        </label>
+                                    }
+                                </div>
+                            </div>
+                            <span asp-validation-for="Rating" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Comment" class="control-label">Nhận xét <span class="text-danger">*</span></label>
+                            <textarea asp-for="Comment" class="form-control" rows="5" placeholder="Nhập nhận xét của khách hàng..." required></textarea>
+                            <span asp-validation-for="Comment" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Reply" class="control-label">Phản hồi (có thể để trống)</label>
+                            <textarea asp-for="Reply" class="form-control" rows="4" placeholder="Nhập phản hồi (nếu có)..."></textarea>
+                            <span asp-validation-for="Reply" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Lưu
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Highlight selected rating
+        $('.rating-input input[type="radio"]').on('change', function() {
+            $('.rating-input label').removeClass('active');
+            $(this).parent().addClass('active');
+        });
+    </script>
+}

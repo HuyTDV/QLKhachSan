@@ -1,0 +1,202 @@
+﻿@model QLKhachSan.Models.Booking
+
+@{
+    ViewData["Title"] = "Chi tiết đặt phòng";
+}
+
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Chi tiết đặt phòng #@Model.BookingId</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Đặt phòng</a></li>
+                    <li class="breadcrumb-item active">Chi tiết</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Thông tin đặt phòng -->
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">Thông tin đặt phòng</h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th width="30%">Mã booking</th>
+                                <td><strong>#@Model.BookingId</strong></td>
+                            </tr>
+                            <tr>
+                                <th>Khách hàng</th>
+                                <td>
+                                    <strong>@(Model.User?.FullName ?? "N/A")</strong>
+                                    @if (Model.User != null)
+                                    {
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-envelope"></i> @Model.User.Email<br>
+                                            <i class="fas fa-phone"></i> @Model.User.Phone
+                                        </small>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Phòng</th>
+                                <td>
+                                    <strong>Phòng @(Model.Room?.RoomNumber ?? "N/A")</strong>
+                                    @if (Model.Room != null)
+                                    {
+                                        <br>
+                                        <small class="text-muted">
+                                            Loại: @Model.Room.RoomType<br>
+                                            Giá: @Model.Room.Price?.ToString("N0") ₫/đêm
+                                        </small>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Ngày nhận phòng</th>
+                                <td>
+                                    <i class="fas fa-calendar-check text-success"></i>
+                                    @Model.CheckIn?.ToString("dd/MM/yyyy")
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Ngày trả phòng</th>
+                                <td>
+                                    <i class="fas fa-calendar-times text-danger"></i>
+                                    @Model.CheckOut?.ToString("dd/MM/yyyy")
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Số đêm</th>
+                                <td>
+                                    @if (Model.CheckIn.HasValue && Model.CheckOut.HasValue)
+                                    {
+                                        var nights = (Model.CheckOut.Value.ToDateTime(TimeOnly.MinValue) - Model.CheckIn.Value.ToDateTime(TimeOnly.MinValue)).Days;
+                                        <strong>@nights đêm</strong>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Tổng tiền</th>
+                                <td>
+                                    <h4 class="text-success">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        @Model.TotalPrice?.ToString("N0") ₫
+                                    </h4>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Trạng thái</th>
+                                <td>
+                                    @if (Model.Status == "Confirmed")
+                                    {
+                                        <span class="badge badge-success badge-lg">Đã xác nhận</span>
+                                    }
+                                    else if (Model.Status == "Pending")
+                                    {
+                                        <span class="badge badge-warning badge-lg">Chờ xác nhận</span>
+                                    }
+                                    else if (Model.Status == "Checked-in")
+                                    {
+                                        <span class="badge badge-info badge-lg">Đang ở</span>
+                                    }
+                                    else if (Model.Status == "Checked-out")
+                                    {
+                                        <span class="badge badge-secondary badge-lg">Đã trả phòng</span>
+                                    }
+                                    else if (Model.Status == "Cancelled")
+                                    {
+                                        <span class="badge badge-danger badge-lg">Đã hủy</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary badge-lg">@Model.Status</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Dịch vụ sử dụng</th>
+                                <td>@(Model.ServicesUsed ?? "Không có")</td>
+                            </tr>
+                            <tr>
+                                <th>Ngày tạo</th>
+                                <td>@Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="card-footer">
+                        <a asp-action="Edit" asp-route-id="@Model.BookingId" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Chỉnh sửa
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@Model.BookingId" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Xóa
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- Thông tin thanh toán -->
+                <div class="card card-success">
+                    <div class="card-header">
+                        <h3 class="card-title">Thông tin thanh toán</h3>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Payments != null && Model.Payments.Any())
+                        {
+                            <ul class="list-group">
+                                @foreach (var payment in Model.Payments)
+                                {
+                                    <li class="list-group-item">
+                                        <strong>@payment.Amount?.ToString("N0") ₫</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            @payment.PaymentMethod<br>
+                                            @payment.PaidAt?.ToString("dd/MM/yyyy HH:mm")
+                                        </small>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p class="text-muted text-center">Chưa có thanh toán</p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Quick actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Thao tác nhanh</h3>
+                    </div>
+                    <div class="card-body">
+                        <a href="#" class="btn btn-info btn-block">
+                            <i class="fas fa-print"></i> In phiếu đặt phòng
+                        </a>
+                        <a href="#" class="btn btn-success btn-block">
+                            <i class="fas fa-envelope"></i> Gửi email xác nhận
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
