@@ -18,6 +18,36 @@ namespace QLKhachSan.Controllers
             return View();
         }
 
+        public IActionResult Booking()
+        {
+            return View();
+        }
+
+        public IActionResult Blog()
+        {
+            return View();
+        }
+
+        public IActionResult Profile()
+        {
+            return View();
+        }
+
+        public IActionResult Room()
+        {
+            return View();
+        }
+
+        public IActionResult Contact()
+        {
+            return View();
+        }
+
+        public IActionResult RoomDetails()
+        {
+            return View();
+        }
+
         public IActionResult Privacy()
         {
             return View();
