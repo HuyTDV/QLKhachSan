@@ -67,7 +67,10 @@
                                         <td>
                                             @if (!string.IsNullOrEmpty(user.Avatar))
                                             {
-                                                <img src="~/images/avatars/@user.Avatar" alt="Avatar" class="img-circle" width="40" height="40">
+                                                <img src="~/assets/img/avatars/@user.Avatar"
+                                                     alt="@user.FullName"
+                                                     class="user-avatar"
+                                                     style="width: 40px !important; height: 40px !important; object-fit: cover !important; border-radius: 50% !important; max-width: 40px !important; max-height: 40px !important;">
                                             }
                                             else
                                             {

@@ -1,8 +1,10 @@
-﻿@{
+﻿@model QLKhachSan.Areas.Admin.Models.DashboardViewModel
+@{
     ViewData["Title"] = "Tổng quan";
+    var selectedMonth = ViewBag.SelectedMonth ?? DateTime.Now.Month;
+    var selectedYear = ViewBag.SelectedYear ?? DateTime.Now.Year;
 }
 
-<!-- Content Header -->
 <div class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
@@ -19,10 +21,54 @@
     </div>
 </div>
 
-<!-- Main content -->
 <section class="content">
     <div class="container-fluid">
-        <!-- Small boxes -->
+
+        <div class="card card-primary card-outline mb-3">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-filter"></i> Chọn tháng xem doanh thu
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="get" action="@Url.Action("Index", "Home", new { area = "Admin" })" class="form-inline">
+                    <div class="form-group mr-3">
+                        <label for="month" class="mr-2">Tháng:</label>
+                        <select name="month" id="month" class="form-control">
+                            @for (int i = 1; i <= 12; i++)
+                            {
+                                <option value="@i" selected="@(i == selectedMonth)">Tháng @i</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group mr-3">
+                        <label for="year" class="mr-2">Năm:</label>
+                        <select name="year" id="year" class="form-control">
+                            @for (int y = DateTime.Now.Year - 2; y <= DateTime.Now.Year + 1; y++)
+                            {
+                                <option value="@y" selected="@(y == selectedYear)">@y</option>
+                            }
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Xem báo cáo
+                    </button>
+
+                    <a href="@Url.Action("Index", "Home", new { area = "Admin" })" class="btn btn-secondary ml-2">
+                        <i class="fas fa-redo"></i> Reset
+                    </a>
+                </form>
+
+                <div class="mt-3">
+                    <span class="badge badge-info" style="font-size: 14px; padding: 8px 12px;">
+                        <i class="fas fa-calendar-alt"></i> Đang xem: Tháng @selectedMonth/@selectedYear
+                    </span>
+                </div>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-info">
@@ -73,7 +119,7 @@
                 <div class="small-box bg-danger">
                     <div class="inner">
                         <h3>@ViewBag.MonthlyRevenue.ToString("N0")<sup style="font-size: 20px">₫</sup></h3>
-                        <p>Doanh thu tháng</p>
+                        <p>Doanh thu tháng @selectedMonth/@selectedYear</p>
                     </div>
                     <div class="icon">
                         <i class="fas fa-money-bill-wave"></i>
@@ -85,9 +131,35 @@
             </div>
         </div>
 
-        <!-- Second row -->
+        <div class="row mb-3">
+            <div class="col-md-8">
+                <div class="card card-primary card-outline h-100">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-line"></i> Biểu đồ doanh thu tháng @selectedMonth
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart">
+                            <canvas id="revenueChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-success card-outline h-100">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-pie"></i> Tỷ lệ phòng
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="statusChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="row">
-            <!-- Recent Bookings -->
             <div class="col-md-8">
                 <div class="card">
                     <div class="card-header">
@@ -95,7 +167,7 @@
                             <i class="fas fa-calendar-alt"></i> Đặt phòng gần đây
                         </h3>
                         <div class="card-tools">
-                            <span class="badge badge-primary">@ViewBag.MonthlyBookings booking trong tháng</span>
+                            <span class="badge badge-primary">@ViewBag.MonthlyBookings booking tháng @selectedMonth</span>
                         </div>
                     </div>
                     <div class="card-body p-0">
@@ -159,7 +231,6 @@
                 </div>
             </div>
 
-            <!-- Maintenance -->
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-header">
@@ -204,7 +275,6 @@
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -225,28 +295,75 @@
                 </div>
             </div>
         </div>
-
-        <!-- Welcome Card -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card card-primary card-outline">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-info-circle"></i> Chào mừng đến với hệ thống quản lý Khách sạn Grandora
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <p>Sử dụng menu bên trái để điều hướng qua các chức năng quản lý khách sạn.</p>
-                        <ul>
-                            <li><strong>Quản lý phòng:</strong> Thêm, sửa, xóa phòng và theo dõi trạng thái</li>
-                            <li><strong>Đặt phòng:</strong> Quản lý booking từ khách hàng</li>
-                            <li><strong>Khách hàng:</strong> Quản lý thông tin và đánh giá</li>
-                            <li><strong>Dịch vụ:</strong> Quản lý các dịch vụ bổ sung</li>
-                            <li><strong>Tài chính:</strong> Theo dõi thanh toán và doanh thu</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // --- 1. Biểu đồ Doanh thu ---
+        var ctxRevenue = document.getElementById('revenueChart').getContext('2d');
+        var revenueData = {
+            // Lấy dữ liệu từ Model
+            labels: @Html.Raw(Json.Serialize(Model.RevenueLabels)),
+            datasets: [{
+                label: 'Doanh thu (VNĐ)',
+                backgroundColor: 'rgba(60,141,188,0.9)',
+                borderColor: 'rgba(60,141,188,0.8)',
+                pointRadius: false,
+                pointColor: '#3b8bba',
+                pointStrokeColor: 'rgba(60,141,188,1)',
+                pointHighlightFill: '#fff',
+                pointHighlightStroke: 'rgba(60,141,188,1)',
+                data: @Html.Raw(Json.Serialize(Model.RevenueValues))
+            }]
+        };
+
+        new Chart(ctxRevenue, {
+            type: 'bar',
+            data: revenueData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) { return value.toLocaleString('vi-VN') + ' ₫'; }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) { return context.raw.toLocaleString('vi-VN') + ' ₫'; }
+                        }
+                    }
+                }
+            }
+        });
+
+        // --- 2. Biểu đồ Tròn (Trạng thái phòng) ---
+        var ctxStatus = document.getElementById('statusChart').getContext('2d');
+        new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+                labels: ['Trống', 'Đã đặt/Đang ở', 'Bảo trì'],
+                datasets: [{
+                    data: @Html.Raw(Json.Serialize(Model.RoomStatusCounts)),
+                    backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    });
+</script>
