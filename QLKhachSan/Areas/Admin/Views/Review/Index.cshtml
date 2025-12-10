@@ -1,177 +1,664 @@
 ﻿@model IEnumerable<QLKhachSan.Models.Review>
+@using QLKhachSan.Models
 
 @{
     ViewData["Title"] = "Quản lý Đánh giá";
+    var branches = ViewBag.Branches as List<HotelBranch> ?? new List<HotelBranch>();
+    var rooms = ViewBag.Rooms as List<dynamic> ?? new List<dynamic>();
+    
+    
+    var currentPage = ViewBag.CurrentPage ?? 1;
+    var pageSize = ViewBag.PageSize ?? 10;
+    var totalItems = ViewBag.TotalItems ?? 0;
+    var totalPages = ViewBag.TotalPages ?? 1;
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="card-title">Danh sách Đánh giá</h3>
-                    <div>
-                        <span class="badge badge-info mr-2">
-                            Tổng: @Model.Count() đánh giá
-                        </span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    @if (TempData["Success"] != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show">
-                            @TempData["Success"]
-                            <button type="button" class="close" data-dismiss="alert">&times;</button>
-                        </div>
-                    }
-
-                    <!-- Thống kê nhanh -->
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <div class="info-box bg-warning">
-                                <span class="info-box-icon"><i class="fas fa-star"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Điểm trung bình</span>
-                                    <span class="info-box-number">
-                                        @if (Model.Any())
-                                        {
-                                            @Model.Average(r => r.Rating ?? 0).ToString("F1")
-                                        }
-                                        else
-                                        {
-                                            <text>0.0</text>
-                                        }
-                                        / 5.0
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="info-box bg-success">
-                                <span class="info-box-icon"><i class="fas fa-comments"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Đã phản hồi</span>
-                                    <span class="info-box-number">@Model.Count(r => !string.IsNullOrEmpty(r.Reply))</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="info-box bg-danger">
-                                <span class="info-box-icon"><i class="fas fa-reply"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Chưa phản hồi</span>
-                                    <span class="info-box-number">@Model.Count(r => string.IsNullOrEmpty(r.Reply))</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="info-box bg-info">
-                                <span class="info-box-icon"><i class="fas fa-thumbs-up"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Đánh giá 5 sao</span>
-                                    <span class="info-box-number">@Model.Count(r => r.Rating == 5)</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Khách hàng</th>
-                                    <th>Phòng</th>
-                                    <th>Đánh giá</th>
-                                    <th>Nội dung</th>
-                                    <th>Phản hồi</th>
-                                    <th>Ngày tạo</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in Model)
-                                {
-                                    <tr>
-                                        <td>@item.ReviewId</td>
-                                        <td>
-                                            <i class="fas fa-user"></i>
-                                            @item.User?.FullName
-                                        </td>
-                                        <td>
-                                            <span class="badge badge-secondary">
-                                                Phòng @item.Room?.RoomNumber
-                                            </span>
-                                        </td>
-                                        <td>
-                                            @if (item.Rating.HasValue)
-                                            {
-                                                <div>
-                                                    @for (int i = 1; i <= 5; i++)
-                                                    {
-                                                        if (i <= item.Rating.Value)
-                                                        {
-                                                            <i class="fas fa-star text-warning"></i>
-                                                        }
-                                                        else
-                                                        {
-                                                            <i class="far fa-star text-muted"></i>
-                                                        }
-                                                    }
-                                                    <br />
-                                                    <small class="text-muted">(@item.Rating/5)</small>
-                                                </div>
-                                            }
-                                        </td>
-                                        <td>
-                                            @if (item.Comment != null && item.Comment.Length > 50)
-                                            {
-                                                @item.Comment.Substring(0, 50)
-                                        
-                                                <text>...</text>
-                                            }
-                                            else
-                                            {
-                                                @item.Comment
-                                            }
-                                        </td>
-                                        <td>
-                                            @if (string.IsNullOrEmpty(item.Reply))
-                                            {
-                                                <span class="badge badge-danger">Chưa phản hồi</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge badge-success">Đã phản hồi</span>
-                                            }
-                                        </td>
-                                        <td>@item.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</td>
-                                        <td>
-                                            <a asp-action="Details" asp-route-id="@item.ReviewId" class="btn btn-info btn-sm">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a asp-action="Edit" asp-route-id="@item.ReviewId" class="btn btn-warning btn-sm" title="Phản hồi">
-                                                <i class="fas fa-reply"></i>
-                                            </a>
-                                            <a asp-action="Delete" asp-route-id="@item.ReviewId" class="btn btn-danger btn-sm">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-
-                    @if (!Model.Any())
-                    {
-                        <div class="alert alert-info text-center">
-                            <i class="fas fa-info-circle"></i>
-                            Chưa có đánh giá nào
-                        </div>
-                    }
-                </div>
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">
+                    <i class="fas fa-star text-warning"></i> Quản lý Đánh giá
+                </h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                    <li class="breadcrumb-item active">Đánh giá</li>
+                </ol>
             </div>
         </div>
     </div>
 </div>
+
+<section class="content">
+    <div class="container-fluid">
+        
+        <!-- STATISTICS CARDS -->
+        <div class="row mb-3">
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                       <h3>@(ViewBag.AverageRating != null ? ((double)ViewBag.AverageRating).ToString("F1") : "0.0")<sup style="font-size: 20px">/5.0</sup></h3>
+                        <p>Điểm trung bình</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@ViewBag.RepliedCount</h3>
+                        <p>Đã phản hồi</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>@ViewBag.NotRepliedCount</h3>
+                        <p>Chưa phản hồi</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                       <h3>@ViewBag.FiveStarCount</h3>
+                        <p>Đánh giá 5 sao</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-thumbs-up"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RATING DISTRIBUTION CHART -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-bar"></i> Phân bố đánh giá
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            @{
+    // Lấy dữ liệu từ ViewBag (ép kiểu về int để tính toán an toàn)
+    int five = ViewBag.FiveStarCount ?? 0;
+    int four = ViewBag.FourStarCount ?? 0;
+    int three = ViewBag.ThreeStarCount ?? 0;
+    int two = ViewBag.TwoStarCount ?? 0;
+    int one = ViewBag.OneStarCount ?? 0;
+    int total = ViewBag.TotalReviews ?? 0;
+
+    // Tính giá trị lớn nhất để vẽ thanh %
+    var maxCount = new[] { five, four, three, two, one }.Max();
+    maxCount = maxCount == 0 ? 1 : maxCount;
+}
+
+@for(int i = 5; i >= 1; i--)
+{
+    var count = i switch {
+        5 => five,
+        4 => four,
+        3 => three,
+        2 => two,
+        1 => one,
+        _ => 0
+    };
+
+    var percentage = total > 0 ? (count * 100.0 / total) : 0;
+    var barWidth = maxCount > 0 ? (count * 100.0 / maxCount) : 0;
+
+    <div class="col-12 mb-2">
+         <div class="d-flex align-items-center">
+             <span class="mr-2" style="min-width: 60px;">@i <i class="fas fa-star text-warning"></i></span>
+             <div class="progress flex-grow-1 mr-2" style="height: 25px;">
+                 <div class="progress-bar bg-@(i >= 4 ? "success" : i == 3 ? "warning" : "danger")" 
+                      role="progressbar" 
+                      style="width: @barWidth%"
+                      aria-valuenow="@count" 
+                      aria-valuemin="0" 
+                      aria-valuemax="@maxCount">
+                     @count
+                 </div>
+             </div>
+             <span class="text-muted" style="min-width: 60px;">@percentage.ToString("F1")%</span>
+         </div>
+    </div>
+}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOOLBAR -->
+        <div class="card card-outline card-primary mb-3">
+            <div class="card-body p-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <button type="button" class="btn btn-primary" data-toggle="collapse" data-target="#filterCollapse">
+                            <i class="fas fa-filter"></i> Bộ lọc
+                        </button>
+                    </div>
+                    <div>
+                        <a href="@Url.Action("ExportExcel", "Review", new { 
+                            branchId = ViewBag.BranchId, 
+                            rating = ViewBag.Rating, 
+                            replyStatus = ViewBag.ReplyStatus,
+                            roomId = ViewBag.RoomId,
+                            searchTerm = ViewBag.SearchTerm 
+                        })" class="btn btn-success">
+                            <i class="fas fa-file-excel"></i> Xuất Excel
+                        </a>
+                        <a href="@Url.Action("ExportPdf", "Review", new { 
+                            branchId = ViewBag.BranchId, 
+                            rating = ViewBag.Rating, 
+                            replyStatus = ViewBag.ReplyStatus,
+                            roomId = ViewBag.RoomId,
+                            searchTerm = ViewBag.SearchTerm 
+                        })" class="btn btn-danger" target="_blank">
+                            <i class="fas fa-file-pdf"></i> Xuất PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTER CARD -->
+        <div class="collapse" id="filterCollapse">
+            <div class="card card-secondary mb-3">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-filter"></i> Bộ lọc nâng cao</h3>
+                </div>
+                <div class="card-body">
+                    <form method="get" asp-action="Index" asp-controller="Review" asp-area="Admin">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Chi nhánh</label>
+                                    <select name="branchId" class="form-control">
+                                        <option value="">-- Tất cả --</option>
+                                        @foreach (var branch in branches)
+                                        {
+                                            <option value="@branch.BranchId" selected="@(ViewBag.BranchId == branch.BranchId)">@branch.BranchName</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Phòng</label>
+                                    <select name="roomId" class="form-control">
+                                        <option value="">-- Tất cả phòng --</option>
+                                        @foreach (dynamic room in rooms)
+                                        {
+                                            <option value="@room.RoomId" selected="@(ViewBag.RoomId == room.RoomId)">Phòng @room.RoomNumber</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Đánh giá</label>
+                                    <select name="rating" class="form-control">
+                                        <option value="">-- Tất cả --</option>
+                                        <option value="5" selected="@(ViewBag.Rating == 5)">⭐⭐⭐⭐⭐ (5 sao)</option>
+                                        <option value="4" selected="@(ViewBag.Rating == 4)">⭐⭐⭐⭐ (4 sao)</option>
+                                        <option value="3" selected="@(ViewBag.Rating == 3)">⭐⭐⭐ (3 sao)</option>
+                                        <option value="2" selected="@(ViewBag.Rating == 2)">⭐⭐ (2 sao)</option>
+                                        <option value="1" selected="@(ViewBag.Rating == 1)">⭐ (1 sao)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Trạng thái phản hồi</label>
+                                    <select name="replyStatus" class="form-control">
+                                        <option value="">-- Tất cả --</option>
+                                        <option value="replied" selected="@(ViewBag.ReplyStatus == "replied")">Đã phản hồi</option>
+                                        <option value="not_replied" selected="@(ViewBag.ReplyStatus == "not_replied")">Chưa phản hồi</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Sắp xếp</label>
+                                    <select name="sortBy" class="form-control">
+                                        <option value="date_desc" selected="@(ViewBag.SortBy == "date_desc")">Mới nhất</option>
+                                        <option value="date_asc" selected="@(ViewBag.SortBy == "date_asc")">Cũ nhất</option>
+                                        <option value="rating_desc" selected="@(ViewBag.SortBy == "rating_desc")">Rating cao → thấp</option>
+                                        <option value="rating_asc" selected="@(ViewBag.SortBy == "rating_asc")">Rating thấp → cao</option>
+                                        <option value="customer_asc" selected="@(ViewBag.SortBy == "customer_asc")">Tên A → Z</option>
+                                        <option value="customer_desc" selected="@(ViewBag.SortBy == "customer_desc")">Tên Z → A</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Tìm kiếm</label>
+                                    <input type="text" name="searchTerm" class="form-control" placeholder="Tên khách, nội dung..." value="@ViewBag.SearchTerm" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Áp dụng</button>
+                                <a href="@Url.Action("Index", "Review")" class="btn btn-secondary"><i class="fas fa-redo"></i> Reset</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- REVIEWS LIST -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-list"></i> Danh sách đánh giá
+                    <span class="badge badge-info ml-2">Trang @currentPage/@totalPages</span>
+                </h3>
+                <div class="card-tools">
+                    <span class="badge badge-primary mr-2">Tổng: @totalItems đánh giá</span>
+                </div>
+            </div>
+            <div class="card-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <i class="fas fa-check-circle"></i> @TempData["Success"]
+                    </div>
+                }
+
+                <!-- Active Filters Display -->
+                @if (ViewBag.BranchId != null || ViewBag.Rating != null || !string.IsNullOrEmpty(ViewBag.ReplyStatus) || ViewBag.RoomId != null || !string.IsNullOrEmpty(ViewBag.SearchTerm))
+                {
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> <strong>Đang lọc:</strong>
+                        @if (ViewBag.BranchId != null)
+                        {
+                            var selectedBranch = branches.FirstOrDefault(b => b.BranchId == (int)ViewBag.BranchId);
+                            if (selectedBranch != null)
+                            {
+                                <span class="badge badge-secondary">Chi nhánh: @selectedBranch.BranchName</span>
+                            }
+                        }
+                        @if (ViewBag.Rating != null)
+                        {
+                            <span class="badge badge-secondary">Rating: @ViewBag.Rating sao</span>
+                        }
+                        @if (!string.IsNullOrEmpty(ViewBag.ReplyStatus))
+                        {
+                            <span class="badge badge-secondary">
+                                @(ViewBag.ReplyStatus == "replied" ? "Đã phản hồi" : "Chưa phản hồi")
+                            </span>
+                        }
+                        @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                        {
+                            <span class="badge badge-secondary">Từ khóa: @ViewBag.SearchTerm</span>
+                        }
+                    </div>
+                }
+
+                <!-- Page Size Selector -->
+                <div class="row mb-3">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="d-flex align-items-center">
+                            <label class="mb-0 mr-2">Hiển thị:</label>
+                            <form method="get" asp-action="Index" id="pageSizeForm">
+                                <input type="hidden" name="branchId" value="@ViewBag.BranchId" />
+                                <input type="hidden" name="rating" value="@ViewBag.Rating" />
+                                <input type="hidden" name="replyStatus" value="@ViewBag.ReplyStatus" />
+                                <input type="hidden" name="roomId" value="@ViewBag.RoomId" />
+                                <input type="hidden" name="searchTerm" value="@ViewBag.SearchTerm" />
+                                <input type="hidden" name="sortBy" value="@ViewBag.SortBy" />
+                                <select name="pageSize" class="form-control form-control-sm" style="width: 80px;" onchange="this.form.submit()">
+                                    <option value="10" selected="@(pageSize == 10)">10</option>
+                                    <option value="25" selected="@(pageSize == 25)">25</option>
+                                    <option value="50" selected="@(pageSize == 50)">50</option>
+                                    <option value="100" selected="@(pageSize == 100)">100</option>
+                                </select>
+                            </form>
+                            <span class="ml-2 text-muted">
+                                Hiển thị @((currentPage - 1) * pageSize + 1) - @(Math.Min(currentPage * pageSize, totalItems)) / @totalItems
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th width="5%">ID</th>
+                                <th width="12%">Khách hàng</th>
+                                <th width="10%">Phòng</th>
+                                <th width="8%">Đánh giá</th>
+                                <th width="25%">Nội dung</th>
+                                <th width="15%">Phản hồi</th>
+                                <th width="10%">Ngày tạo</th>
+                                <th width="15%">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                @foreach (var review in Model)
+{
+    <tr>
+        <td><strong>#@review.ReviewId</strong></td>
+        <td>
+            <i class="fas fa-user"></i> @(review.User?.FullName ?? "N/A")
+            <br>
+            <small class="text-muted">@review.Room?.Branch?.BranchName</small>
+        </td>
+        <td>
+            <span class="badge badge-secondary" style="font-size: 0.9em;">
+                Phòng @(review.Room?.RoomNumber ?? "N/A")
+            </span>
+        </td>
+        <td>
+            <div class="text-center">
+                @if (review.Rating.HasValue)
+                {
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        if (i <= review.Rating.Value)
+                        {
+                            <i class="fas fa-star text-warning"></i>
+                        }
+                        else
+                        {
+                            <i class="far fa-star text-muted"></i>
+                        }
+                    }
+                    <br>
+                    <small class="text-muted">(@review.Rating/5)</small>
+                }
+            </div>
+        </td>
+        <td>
+            <small>
+                @if (review.Comment != null && review.Comment.Length > 80)
+                {
+                    @review.Comment.Substring(0, 80)<text>...</text>
+                }
+                else
+                {
+                    @review.Comment
+                }
+            </small>
+        </td>
+        <td>
+            @if (string.IsNullOrEmpty(review.Reply))
+            {
+                <span class="badge badge-danger">Chưa phản hồi</span>
+                <button class="btn btn-sm btn-warning mt-1" onclick="showQuickReply(@review.ReviewId)">
+                    <i class="fas fa-reply"></i> Phản hồi nhanh
+                </button>
+            }
+            else
+            {
+                <span class="badge badge-success">Đã phản hồi</span>
+                <br>
+                <small>
+                    @if (review.Reply.Length > 50)
+                    {
+                        @review.Reply.Substring(0, 50)<text>...</text>
+                    }
+                    else
+                    {
+                        @review.Reply
+                    }
+                </small>
+            }
+        </td>
+        <td>
+            <small>@(review.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</small>
+        </td>
+        
+        <td class="text-center">
+            <div class="btn-group btn-group-sm">
+                <a asp-action="Details" asp-route-id="@review.ReviewId" class="btn btn-info" title="Chi tiết">
+                    <i class="fas fa-eye"></i>
+                </a>
+                <a asp-action="Edit" asp-route-id="@review.ReviewId" class="btn btn-warning" title="Phản hồi">
+                    <i class="fas fa-reply"></i>
+                </a>
+                <a asp-action="Delete" asp-route-id="@review.ReviewId" class="btn btn-danger" title="Xóa">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </div>
+        </td>
+        </tr>
+}
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">
+                                        <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                        <p class="mb-0">Không tìm thấy đánh giá nào</p>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- PAGINATION -->
+                @if (totalPages > 1)
+                {
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { 
+                                            pageNumber = 1, 
+                                            pageSize = pageSize,
+                                            branchId = ViewBag.BranchId,
+                                            rating = ViewBag.Rating,
+                                            replyStatus = ViewBag.ReplyStatus,
+                                            roomId = ViewBag.RoomId,
+                                            searchTerm = ViewBag.SearchTerm,
+                                            sortBy = ViewBag.SortBy
+                                        })">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+
+                                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { 
+                                            pageNumber = currentPage - 1, 
+                                            pageSize = pageSize,
+                                            branchId = ViewBag.BranchId,
+                                            rating = ViewBag.Rating,
+                                            replyStatus = ViewBag.ReplyStatus,
+                                            roomId = ViewBag.RoomId,
+                                            searchTerm = ViewBag.SearchTerm,
+                                            sortBy = ViewBag.SortBy
+                                        })">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+
+                                    @{
+                                        var startPage = Math.Max(1, currentPage - 2);
+                                        var endPage = Math.Min(totalPages, currentPage + 2);
+
+                                        if (startPage > 1)
+                                        {
+                                            <li class="page-item disabled">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        }
+
+                                        for (int i = startPage; i <= endPage; i++)
+                                        {
+                                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                                <a class="page-link" href="@Url.Action("Index", new { 
+                                                    pageNumber = i, 
+                                                    pageSize = pageSize,
+                                                    branchId = ViewBag.BranchId,
+                                                    rating = ViewBag.Rating,
+                                                    replyStatus = ViewBag.ReplyStatus,
+                                                    roomId = ViewBag.RoomId,
+                                                    searchTerm = ViewBag.SearchTerm,
+                                                    sortBy = ViewBag.SortBy
+                                                })">
+                                                    @i
+                                                </a>
+                                            </li>
+                                        }
+
+                                        if (endPage < totalPages)
+                                        {
+                                            <li class="page-item disabled">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        }
+                                    }
+
+                                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { 
+                                            pageNumber = currentPage + 1, 
+                                            pageSize = pageSize,
+                                            branchId = ViewBag.BranchId,
+                                            rating = ViewBag.Rating,
+                                            replyStatus = ViewBag.ReplyStatus,
+                                            roomId = ViewBag.RoomId,
+                                            searchTerm = ViewBag.SearchTerm,
+                                            sortBy = ViewBag.SortBy
+                                        })">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+
+                                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { 
+                                            pageNumber = totalPages, 
+                                            pageSize = pageSize,
+                                            branchId = ViewBag.BranchId,
+                                            rating = ViewBag.Rating,
+                                            replyStatus = ViewBag.ReplyStatus,
+                                            roomId = ViewBag.RoomId,
+                                            searchTerm = ViewBag.SearchTerm,
+                                            sortBy = ViewBag.SortBy
+                                        })">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- QUICK REPLY MODAL -->
+<div class="modal fade" id="quickReplyModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">
+                    <i class="fas fa-reply"></i> Phản hồi nhanh
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="quickReplyReviewId" />
+                <div class="form-group">
+                    <label>Nội dung phản hồi</label>
+                    <textarea id="quickReplyText" class="form-control" rows="5" placeholder="Nhập phản hồi của bạn..."></textarea>
+                </div>
+                <div class="alert alert-info">
+                    <strong>Mẫu phản hồi nhanh:</strong>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-info mr-1" onclick="setQuickReplyTemplate('Cảm ơn bạn đã đánh giá! Chúng tôi rất vui khi bạn hài lòng với dịch vụ.')">Cảm ơn</button>
+                        <button class="btn btn-sm btn-outline-info mr-1" onclick="setQuickReplyTemplate('Xin lỗi về sự bất tiện. Chúng tôi sẽ cải thiện và mong được phục vụ bạn tốt hơn.')">Xin lỗi</button>
+                        <button class="btn btn-sm btn-outline-info" onclick="setQuickReplyTemplate('Chúng tôi đánh giá cao phản hồi của bạn và sẽ nỗ lực cải thiện dịch vụ.')">Cải thiện</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" onclick="submitQuickReply()">
+                    <i class="fas fa-paper-plane"></i> Gửi phản hồi
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-hide success alert
+        setTimeout(function() { $('.alert-success').fadeOut('slow'); }, 3000);
+
+        // Show quick reply modal
+        function showQuickReply(reviewId) {
+            $('#quickReplyReviewId').val(reviewId);
+            $('#quickReplyText').val('');
+            $('#quickReplyModal').modal('show');
+        }
+
+        // Set template for quick reply
+        function setQuickReplyTemplate(text) {
+            $('#quickReplyText').val(text);
+        }
+
+        // Submit quick reply via AJAX
+        function submitQuickReply() {
+            var reviewId = $('#quickReplyReviewId').val();
+            var reply = $('#quickReplyText').val();
+
+            if (!reply.trim()) {
+                alert('Vui lòng nhập nội dung phản hồi!');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("QuickReply", "Review")',
+                type: 'POST',
+                data: {
+                    reviewId: reviewId,
+                    reply: reply,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#quickReplyModal').modal('hide');
+                        alert(response.message);
+                        location.reload();
+                    } else {
+                        alert('Lỗi: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Có lỗi xảy ra khi gửi phản hồi!');
+                }
+            });
+        }
+    </script>
+    @Html.AntiForgeryToken()
+}

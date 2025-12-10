@@ -25,15 +25,27 @@ namespace QLKhachSan.Areas.Admin.Controllers
             _context = context;
         }
 
-        // GET: Admin/Booking - Có Filter
-        public async Task<IActionResult> Index(int? branchId, string status, DateOnly? fromDate, DateOnly? toDate, string searchTerm)
+        // GET: Admin/Booking - Có Filter + Pagination
+        public async Task<IActionResult> Index(
+            int? branchId,
+            string status,
+            DateOnly? fromDate,
+            DateOnly? toDate,
+            string searchTerm,
+            int pageNumber = 1,
+            int pageSize = 10)
         {
+            // Validate pageSize
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
             var query = _context.Bookings
                 .Include(b => b.Room)
                     .ThenInclude(r => r.Branch)
                 .Include(b => b.User)
                 .AsQueryable();
 
+            // Apply filters
             if (branchId.HasValue)
                 query = query.Where(b => b.Room.BranchId == branchId.Value);
 
@@ -53,8 +65,20 @@ namespace QLKhachSan.Areas.Admin.Controllers
                     (b.Room != null && b.Room.RoomNumber != null && b.Room.RoomNumber.Contains(searchTerm)));
             }
 
-            var bookings = await query.OrderByDescending(b => b.CreatedAt).ToListAsync();
+            // Get total count before pagination
+            var totalItems = await query.CountAsync();
 
+            // Apply sorting and pagination
+            var bookings = await query
+                .OrderByDescending(b => b.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            // Calculate pagination info
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            // Pass data to view
             ViewBag.Branches = await _context.HotelBranches.ToListAsync();
             ViewBag.BranchId = branchId;
             ViewBag.Status = status;
@@ -62,10 +86,16 @@ namespace QLKhachSan.Areas.Admin.Controllers
             ViewBag.ToDate = toDate;
             ViewBag.SearchTerm = searchTerm;
 
+            // Pagination info
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+
             return View(bookings);
         }
 
-        // Export Excel
+        // Export Excel - GIỮ NGUYÊN (không phân trang khi export)
         [HttpGet]
         public async Task<IActionResult> ExportExcel(int? branchId, string status, DateOnly? fromDate, DateOnly? toDate, string searchTerm)
         {
@@ -161,7 +191,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
             }
         }
 
-        // Export PDF
+        // Export PDF - GIỮ NGUYÊN
         [HttpGet]
         public async Task<IActionResult> ExportPdf(int? branchId, string status, DateOnly? fromDate, DateOnly? toDate, string searchTerm)
         {
@@ -265,6 +295,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
             }
         }
 
+        // Các method khác giữ nguyên
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -282,60 +313,50 @@ namespace QLKhachSan.Areas.Admin.Controllers
             return View(booking);
         }
 
-        // GET: Create - Sử dụng helper method
         public IActionResult Create()
         {
             LoadViewBagData();
             return View();
         }
 
-        // POST: Create - ĐÃ SỬA: Xử lý khách hàng mới
-        // POST: Create - Đã tối ưu hoàn chỉnh
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
             [Bind("BookingId,UserId,RoomId,CheckIn,CheckOut,TotalPrice,Status,ServicesUsed")] Booking booking,
-            string newCustomerName,
-            string newCustomerPhone,
-            string newCustomerEmail)
+            string? newCustomerName,
+            string? newCustomerPhone,
+            string? newCustomerEmail)
         {
-            // Xử lý khách hàng mới (Walk-in)
             if (!string.IsNullOrEmpty(newCustomerName) && !string.IsNullOrEmpty(newCustomerPhone))
             {
-                // Kiểm tra xem số điện thoại đã tồn tại chưa
                 var existingUser = await _context.Users
                     .FirstOrDefaultAsync(u => u.Phone == newCustomerPhone);
 
                 if (existingUser != null)
                 {
-                    // Nếu SĐT đã tồn tại, sử dụng tài khoản hiện có
                     booking.UserId = existingUser.UserId;
                     TempData["Info"] = $"Sử dụng tài khoản có sẵn: {existingUser.FullName}";
                 }
                 else
                 {
-                    // Kiểm tra email có trùng không (nếu có nhập email)
                     if (!string.IsNullOrEmpty(newCustomerEmail))
                     {
-                        var existingEmail = await _context.Users
-                            .FirstOrDefaultAsync(u => u.Email == newCustomerEmail);
-
+                        var existingEmail = await _context.Users.FirstOrDefaultAsync(u => u.Email == newCustomerEmail);
                         if (existingEmail != null)
                         {
-                            ModelState.AddModelError("", $"Email {newCustomerEmail} đã được sử dụng bởi tài khoản khác.");
+                            ModelState.AddModelError("", $"Email {newCustomerEmail} đã tồn tại.");
                             LoadViewBagData(booking.RoomId, booking.UserId);
                             return View(booking);
                         }
                     }
 
-                    // Tạo User mới
                     var newUser = new User
                     {
                         FullName = newCustomerName,
                         Phone = newCustomerPhone,
                         Email = string.IsNullOrEmpty(newCustomerEmail) ? $"{newCustomerPhone}@walk-in.com" : newCustomerEmail,
                         Username = newCustomerPhone,
-                        PasswordHash = "walk-in-customer", // Placeholder - nên hash trong production
+                        PasswordHash = "walk-in-customer",
                         Role = "Customer",
                         CreatedAt = DateTime.Now
                     };
@@ -344,27 +365,42 @@ namespace QLKhachSan.Areas.Admin.Controllers
                     await _context.SaveChangesAsync();
 
                     booking.UserId = newUser.UserId;
-                    TempData["Info"] = $"Đã tạo tài khoản mới cho khách: {newCustomerName}";
+                    TempData["Info"] = $"Đã tạo tài khoản mới: {newCustomerName}";
                 }
             }
 
-            // Validate UserId
+            ModelState.Remove("newCustomerName");
+            ModelState.Remove("newCustomerPhone");
+            ModelState.Remove("newCustomerEmail");
+            ModelState.Remove("UserId");
+            ModelState.Remove("Room");
+            ModelState.Remove("User");
+
             if (!booking.UserId.HasValue || booking.UserId.Value == 0)
             {
                 ModelState.AddModelError("UserId", "Vui lòng chọn khách hàng hoặc nhập thông tin khách mới.");
             }
 
-            // Validate dates
             if (booking.CheckIn.HasValue && booking.CheckOut.HasValue)
             {
                 if (booking.CheckOut <= booking.CheckIn)
                 {
                     ModelState.AddModelError("CheckOut", "Ngày trả phòng phải sau ngày nhận phòng.");
                 }
-
                 if (booking.CheckIn < DateOnly.FromDateTime(DateTime.Now))
                 {
                     ModelState.AddModelError("CheckIn", "Ngày nhận phòng không được là ngày trong quá khứ.");
+                }
+
+                var isConflict = await _context.Bookings.AnyAsync(b =>
+                    b.RoomId == booking.RoomId &&
+                    b.Status != "Cancelled" &&
+                    ((booking.CheckIn >= b.CheckIn && booking.CheckIn < b.CheckOut) ||
+                     (booking.CheckOut > b.CheckIn && booking.CheckOut <= b.CheckOut)));
+
+                if (isConflict)
+                {
+                    ModelState.AddModelError("RoomId", "Phòng này đã có người đặt trong khoảng thời gian này.");
                 }
             }
 
@@ -375,25 +411,28 @@ namespace QLKhachSan.Areas.Admin.Controllers
 
                 _context.Add(booking);
 
-                // Cập nhật trạng thái phòng
                 var room = await _context.Rooms.FindAsync(booking.RoomId);
                 if (room != null)
                 {
-                    room.Status = "Booked";
-                    _context.Update(room);
+                    if (booking.CheckIn <= DateOnly.FromDateTime(DateTime.Now))
+                    {
+                        room.Status = "Booked";
+                        _context.Update(room);
+                    }
                 }
 
                 await _context.SaveChangesAsync();
                 TempData["Success"] = "Đặt phòng thành công!";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Create));
             }
 
-            // Nếu validation fail, reload dữ liệu
+            var errors = ModelState.Values.SelectMany(v => v.Errors);
+            foreach (var error in errors) Console.WriteLine(">>> LỖI CÒN LẠI: " + error.ErrorMessage);
+
             LoadViewBagData(booking.RoomId, booking.UserId);
             return View(booking);
         }
 
-        // Helper method để load ViewBag data (tránh code trùng lặp)
         private void LoadViewBagData(int? selectedRoomId = null, int? selectedUserId = null)
         {
             var availableRooms = _context.Rooms
@@ -413,7 +452,6 @@ namespace QLKhachSan.Areas.Admin.Controllers
                 selectedUserId
             );
 
-            // QUAN TRỌNG: Load dữ liệu giá phòng cho JavaScript
             ViewBag.RoomData = _context.Rooms
                 .Where(r => r.Status == "Available")
                 .Select(r => new {
@@ -425,7 +463,6 @@ namespace QLKhachSan.Areas.Admin.Controllers
                 .ToList();
         }
 
-        // API: Lấy giá phòng theo RoomId (backup cho AJAX nếu cần)
         [HttpGet]
         public async Task<JsonResult> GetRoomPrice(int roomId)
         {
