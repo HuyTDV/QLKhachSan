@@ -34,9 +34,49 @@
             </div>
         }
 
+        <!-- Quick Stats -->
+        <div class="row mb-3">
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3 id="availableCount">@Model.Count(r => r.Status == "Available")</h3>
+                        <p>Phòng trống</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-door-open"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3 id="bookedCount">@Model.Count(r => r.Status == "Booked")</h3>
+                        <p>Đã đặt</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-bed"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3 id="maintenanceCount">@Model.Count(r => r.Status == "Maintenance")</h3>
+                        <p>Bảo trì</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-tools"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3 id="totalCount">@Model.Count()</h3>
+                        <p>Tổng phòng</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-hotel"></i></div>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Danh sách phòng</h3>
+                <h3 class="card-title"><i class="fas fa-list"></i> Danh sách phòng</h3>
                 <div class="card-tools">
                     <a asp-action="Create" class="btn btn-success btn-sm">
                         <i class="fas fa-plus"></i> Thêm phòng mới
@@ -44,78 +84,144 @@
                 </div>
             </div>
             <div class="card-body">
+                <!-- Advanced Filters -->
                 <div class="row mb-3">
-                    <div class="col-md-4">
-                        <input type="text" id="searchBox" class="form-control" placeholder="Tìm kiếm theo số phòng, loại phòng...">
+                    <div class="col-md-3">
+                        <label><i class="fas fa-search"></i> Tìm kiếm</label>
+                        <input type="text" id="searchBox" class="form-control" placeholder="Số phòng, loại phòng...">
+                    </div>
+                    <div class="col-md-2">
+                        <label><i class="fas fa-tag"></i> Loại phòng</label>
+                        <select id="roomTypeFilter" class="form-control">
+                            <option value="">Tất cả</option>
+                            @foreach (var type in Model.Select(r => r.RoomType).Distinct())
+                            {
+                                <option value="@type">@type</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label><i class="fas fa-building"></i> Chi nhánh</label>
+                        <select id="branchFilter" class="form-control">
+                            <option value="">Tất cả</option>
+                            @foreach (var branch in Model.Select(r => r.Branch?.BranchName).Distinct().Where(b => b != null))
+                            {
+                                <option value="@branch">@branch</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label><i class="fas fa-info-circle"></i> Trạng thái</label>
+                        <select id="statusFilter" class="form-control">
+                            <option value="">Tất cả</option>
+                            <option value="Available">Trống</option>
+                            <option value="Booked">Đã đặt</option>
+                            <option value="Maintenance">Bảo trì</option>
+                            <option value="Cleaning">Dọn dẹp</option>
+                        </select>
                     </div>
                     <div class="col-md-3">
-                        <select id="statusFilter" class="form-control">
-                            <option value="">-- Tất cả trạng thái --</option>
-                            <option value="Available">Available</option>
-                            <option value="Booked">Booked</option>
-                            <option value="Maintenance">Maintenance</option>
-                            <option value="Cleaning">Cleaning</option>
+                        <label><i class="fas fa-money-bill"></i> Khoảng giá</label>
+                        <select id="priceFilter" class="form-control">
+                            <option value="">Tất cả</option>
+                            <option value="0-1000000">Dưới 1 triệu</option>
+                            <option value="1000000-2000000">1-2 triệu</option>
+                            <option value="2000000-5000000">2-5 triệu</option>
+                            <option value="5000000-999999999">Trên 5 triệu</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-bordered table-striped" id="roomTable">
-                        <thead>
+                    <table class="table table-hover table-striped" id="roomTable">
+                        <thead class="bg-light">
                             <tr>
                                 <th>Số phòng</th>
                                 <th>Loại phòng</th>
                                 <th>Chi nhánh</th>
-                                <th>Sức chứa</th>
-                                <th>Giá (VNĐ)</th>
+                                <th style="width: 80px;">Sức chứa</th>
+                                <th>Giá</th>
                                 <th>Tiện nghi</th>
-                                <th>Trạng thái</th>
-                                <th>Thao tác</th>
+                                <th style="width: 100px;">Trạng thái</th>
+                                <th style="width: 120px;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var room in Model)
                             {
-                                <tr>
-                                    <td><strong>@room.RoomNumber</strong></td>
-                                    <td>@room.RoomType</td>
-                                    <td>@(room.Branch?.BranchName ?? "N/A")</td>
-                                    <td>@room.Capacity người</td>
-                                    <td>@room.Price?.ToString("N0") ₫</td>
-                                    <td>@room.Amenities</td>
+                                <tr data-price="@room.Price" data-status="@room.Status" data-roomtype="@room.RoomType" data-branch="@(room.Branch?.BranchName ?? "")">
+                                    <td><strong class="text-primary">@room.RoomNumber</strong></td>
+                                    <td><span class="badge badge-info">@room.RoomType</span></td>
+                                    <td>
+                                        <i class="fas fa-map-marker-alt text-muted"></i>
+                                        @(room.Branch?.BranchName ?? "N/A")
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-user"></i> @room.Capacity
+                                    </td>
+                                    <td><strong class="text-success">@room.Price?.ToString("N0") ₫</strong></td>
+                                    <td>
+                                        <small class="text-muted">@(room.Amenities?.Length > 30 ? room.Amenities.Substring(0, 30) + "..." : room.Amenities)</small>
+                                    </td>
                                     <td>
                                         @if (room.Status == "Available")
                                         {
-                                            <span class="badge badge-success">Trống</span>
+                                            <span class="badge badge-success" style="font-size: 12px; padding: 6px 10px;">
+                                                <i class="fas fa-check-circle"></i> Trống
+                                            </span>
                                         }
                                         else if (room.Status == "Booked")
                                         {
-                                            <span class="badge badge-danger">Đã đặt</span>
+                                            <span class="badge badge-danger" style="font-size: 12px; padding: 6px 10px;">
+                                                <i class="fas fa-lock"></i> Đã đặt
+                                            </span>
                                         }
                                         else if (room.Status == "Maintenance")
                                         {
-                                            <span class="badge badge-warning">Bảo trì</span>
+                                            <span class="badge badge-warning" style="font-size: 12px; padding: 6px 10px;">
+                                                <i class="fas fa-tools"></i> Bảo trì
+                                            </span>
                                         }
                                         else
                                         {
-                                            <span class="badge badge-info">@room.Status</span>
+                                            <span class="badge badge-secondary" style="font-size: 12px; padding: 6px 10px;">
+                                                @room.Status
+                                            </span>
                                         }
                                     </td>
                                     <td>
-                                        <a asp-action="Details" asp-route-id="@room.RoomId" class="btn btn-info btn-sm" title="Chi tiết">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a asp-action="Edit" asp-route-id="@room.RoomId" class="btn btn-warning btn-sm" title="Sửa">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a asp-action="Delete" asp-route-id="@room.RoomId" class="btn btn-danger btn-sm" title="Xóa">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a asp-action="Details" asp-route-id="@room.RoomId"
+                                               class="btn btn-info"
+                                               data-toggle="tooltip"
+                                               title="Xem chi tiết">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@room.RoomId"
+                                               class="btn btn-warning"
+                                               data-toggle="tooltip"
+                                               title="Chỉnh sửa">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@room.RoomId"
+                                               class="btn btn-danger"
+                                               data-toggle="tooltip"
+                                               title="Xóa phòng">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
+                </div>
+
+                <div class="mt-3 text-muted">
+                    <small>
+                        <i class="fas fa-info-circle"></i>
+                        Hiển thị <strong id="visibleCount">@Model.Count()</strong> / @Model.Count() phòng
+                    </small>
                 </div>
             </div>
         </div>
@@ -125,26 +231,67 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Search functionality
-            $('#searchBox').on('keyup', function() {
-                var value = $(this).val().toLowerCase();
-                $('#roomTable tbody tr').filter(function() {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-                });
-            });
+            // Enable tooltips
+            $('[data-toggle="tooltip"]').tooltip();
 
-            // Status filter
-            $('#statusFilter').on('change', function() {
-                var value = $(this).val();
-                if (value === '') {
-                    $('#roomTable tbody tr').show();
-                } else {
-                    $('#roomTable tbody tr').hide();
-                    $('#roomTable tbody tr').filter(function() {
-                        return $(this).find('td:eq(6)').text().indexOf(value) > -1;
-                    }).show();
-                }
-            });
+            // Combined filter function
+            function applyFilters() {
+                var searchValue = $('#searchBox').val().toLowerCase();
+                var roomType = $('#roomTypeFilter').val();
+                var branch = $('#branchFilter').val();
+                var status = $('#statusFilter').val();
+                var priceRange = $('#priceFilter').val();
+
+                var visibleCount = 0;
+
+                $('#roomTable tbody tr').each(function() {
+                    var $row = $(this);
+                    var text = $row.text().toLowerCase();
+                    var price = parseInt($row.data('price')) || 0;
+                    var rowStatus = $row.data('status');
+                    var rowType = $row.data('roomtype');
+                    var rowBranch = $row.data('branch');
+                    var show = true;
+
+                    // Search filter
+                    if (searchValue && text.indexOf(searchValue) === -1) {
+                        show = false;
+                    }
+
+                    // Room type filter
+                    if (roomType && rowType !== roomType) {
+                        show = false;
+                    }
+
+                    // Branch filter
+                    if (branch && rowBranch !== branch) {
+                        show = false;
+                    }
+
+                    // Status filter (FIX: So sánh với data attribute thay vì text)
+                    if (status && rowStatus !== status) {
+                        show = false;
+                    }
+
+                    // Price filter
+                    if (priceRange) {
+                        var range = priceRange.split('-');
+                        var min = parseInt(range[0]);
+                        var max = parseInt(range[1]);
+                        if (price < min || price > max) {
+                            show = false;
+                        }
+                    }
+
+                    $row.toggle(show);
+                    if (show) visibleCount++;
+                });
+
+                $('#visibleCount').text(visibleCount);
+            }
+
+            // Attach filter events
+            $('#searchBox, #roomTypeFilter, #branchFilter, #statusFilter, #priceFilter').on('keyup change', applyFilters);
 
             // Auto hide alerts
             setTimeout(function() {

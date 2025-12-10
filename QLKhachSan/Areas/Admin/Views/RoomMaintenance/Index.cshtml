@@ -13,7 +13,7 @@
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home", new { area = "Admin" })">Trang chủ</a></li>
                     <li class="breadcrumb-item active">Bảo trì</li>
                 </ol>
             </div>
@@ -24,9 +24,59 @@
 <!-- Main content -->
 <section class="content">
     <div class="container-fluid">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle"></i> @TempData["Success"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+
+        <!-- Quick Stats -->
+        <div class="row mb-3">
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@Model.Count(m => m.Status == "Pending")</h3>
+                        <p>Chờ xử lý</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-clock"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>@Model.Count(m => m.Status == "In Progress")</h3>
+                        <p>Đang thực hiện</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-wrench"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@Model.Count(m => m.Status == "Completed")</h3>
+                        <p>Hoàn thành</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-check-circle"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-secondary">
+                    <div class="inner">
+                        <h3>@Model.Count()</h3>
+                        <p>Tổng yêu cầu</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-tools"></i></div>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Danh sách bảo trì</h3>
+                <h3 class="card-title"><i class="fas fa-list"></i> Danh sách bảo trì</h3>
                 <div class="card-tools">
                     <a asp-action="Create" class="btn btn-success btn-sm">
                         <i class="fas fa-plus"></i> Thêm bảo trì mới
@@ -34,25 +84,55 @@
                 </div>
             </div>
             <div class="card-body">
-                @if (TempData["Success"] != null)
-                {
-                    <div class="alert alert-success alert-dismissible fade show">
-                        <button type="button" class="close" data-dismiss="alert">&times;</button>
-                        @TempData["Success"]
+                <!-- Advanced Filters -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label><i class="fas fa-search"></i> Tìm kiếm</label>
+                        <input type="text" id="searchBox" class="form-control" placeholder="Số phòng, mô tả, nhân viên...">
                     </div>
-                }
+                    <div class="col-md-3">
+                        <label><i class="fas fa-door-open"></i> Phòng</label>
+                        <select id="roomFilter" class="form-control">
+                            <option value="">Tất cả</option>
+                            @foreach (var room in Model.Select(m => m.Room?.RoomNumber).Distinct().Where(r => r != null).OrderBy(r => r))
+                            {
+                                <option value="@room">Phòng @room</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label><i class="fas fa-info-circle"></i> Trạng thái</label>
+                        <select id="statusFilter" class="form-control">
+                            <option value="">Tất cả</option>
+                            <option value="Pending">Chờ xử lý</option>
+                            <option value="In Progress">Đang thực hiện</option>
+                            <option value="Completed">Hoàn thành</option>
+                            <option value="Cancelled">Đã hủy</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label><i class="fas fa-user"></i> Nhân viên</label>
+                        <select id="staffFilter" class="form-control">
+                            <option value="">Tất cả</option>
+                            @foreach (var staff in Model.Select(m => m.Staff?.FullName).Distinct().Where(s => s != null))
+                            {
+                                <option value="@staff">@staff</option>
+                            }
+                        </select>
+                    </div>
+                </div>
 
                 <div class="table-responsive">
-                    <table class="table table-bordered table-striped table-hover">
-                        <thead class="thead-dark">
+                    <table class="table table-hover table-striped" id="maintenanceTable">
+                        <thead class="bg-light">
                             <tr>
-                                <th>Mã bảo trì</th>
+                                <th>Mã BT</th>
                                 <th>Phòng</th>
                                 <th>Mô tả</th>
                                 <th>Nhân viên</th>
                                 <th>Ngày bảo trì</th>
-                                <th>Trạng thái</th>
-                                <th>Thao tác</th>
+                                <th style="width: 120px;">Trạng thái</th>
+                                <th style="width: 120px;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -60,50 +140,92 @@
                             {
                                 foreach (var maintenance in Model)
                                 {
-                                    <tr>
-                                        <td><strong>#@maintenance.MaintenanceId</strong></td>
+                                    <tr data-status="@maintenance.Status" data-room="@(maintenance.Room?.RoomNumber ?? "")" data-staff="@(maintenance.Staff?.FullName ?? "")">
+                                        <td><strong class="text-muted">#@maintenance.MaintenanceId</strong></td>
                                         <td>
-                                            <strong>Phòng @(maintenance.Room?.RoomNumber ?? "N/A")</strong>
+                                            <strong class="text-primary">Phòng @(maintenance.Room?.RoomNumber ?? "N/A")</strong>
                                             @if (maintenance.Room != null)
                                             {
                                                 <br>
-                                                <small class="text-muted">@maintenance.Room.RoomType</small>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-tag"></i> @maintenance.Room.RoomType
+                                                </small>
                                             }
                                         </td>
-                                        <td>@maintenance.Description</td>
-                                        <td>@(maintenance.Staff?.FullName ?? "Chưa phân công")</td>
-                                        <td>@maintenance.MaintenanceDate?.ToString("dd/MM/yyyy HH:mm")</td>
                                         <td>
-                                            @if (maintenance.Status == "Completed")
+                                            <i class="fas fa-clipboard text-muted"></i>
+                                            <small>@maintenance.Description</small>
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(maintenance.Staff?.FullName))
                                             {
-                                                <span class="badge badge-success">Hoàn thành</span>
-                                            }
-                                            else if (maintenance.Status == "In Progress")
-                                            {
-                                                <span class="badge badge-warning">Đang thực hiện</span>
-                                            }
-                                            else if (maintenance.Status == "Pending")
-                                            {
-                                                <span class="badge badge-secondary">Chờ xử lý</span>
-                                            }
-                                            else if (maintenance.Status == "Cancelled")
-                                            {
-                                                <span class="badge badge-danger">Đã hủy</span>
+                                                <i class="fas fa-user-tie text-success"></i>
+                                                <small>@maintenance.Staff.FullName</small>
                                             }
                                             else
                                             {
-                                                <span class="badge badge-info">@maintenance.Status</span>
+                                                <span class="text-muted">
+                                                    <i class="fas fa-user-slash"></i> Chưa phân công
+                                                </span>
                                             }
                                         </td>
                                         <td>
-                                            <div class="btn-group">
-                                                <a asp-action="Details" asp-route-id="@maintenance.MaintenanceId" class="btn btn-info btn-sm" title="Chi tiết">
+                                            <i class="fas fa-calendar text-info"></i>
+                                            <small>@maintenance.MaintenanceDate?.ToString("dd/MM/yyyy")</small>
+                                            <br>
+                                            <i class="fas fa-clock text-muted"></i>
+                                            <small class="text-muted">@maintenance.MaintenanceDate?.ToString("HH:mm")</small>
+                                        </td>
+                                        <td>
+                                            @if (maintenance.Status == "Completed")
+                                            {
+                                                <span class="badge badge-success" style="font-size: 12px; padding: 6px 10px;">
+                                                    <i class="fas fa-check-circle"></i> Hoàn thành
+                                                </span>
+                                            }
+                                            else if (maintenance.Status == "In Progress")
+                                            {
+                                                <span class="badge badge-warning" style="font-size: 12px; padding: 6px 10px;">
+                                                    <i class="fas fa-wrench"></i> Đang làm
+                                                </span>
+                                            }
+                                            else if (maintenance.Status == "Pending")
+                                            {
+                                                <span class="badge badge-secondary" style="font-size: 12px; padding: 6px 10px;">
+                                                    <i class="fas fa-clock"></i> Chờ xử lý
+                                                </span>
+                                            }
+                                            else if (maintenance.Status == "Cancelled")
+                                            {
+                                                <span class="badge badge-danger" style="font-size: 12px; padding: 6px 10px;">
+                                                    <i class="fas fa-times-circle"></i> Đã hủy
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-info" style="font-size: 12px; padding: 6px 10px;">
+                                                    @maintenance.Status
+                                                </span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a asp-action="Details" asp-route-id="@maintenance.MaintenanceId"
+                                                   class="btn btn-info"
+                                                   data-toggle="tooltip"
+                                                   title="Xem chi tiết">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a asp-action="Edit" asp-route-id="@maintenance.MaintenanceId" class="btn btn-warning btn-sm" title="Sửa">
+                                                <a asp-action="Edit" asp-route-id="@maintenance.MaintenanceId"
+                                                   class="btn btn-warning"
+                                                   data-toggle="tooltip"
+                                                   title="Chỉnh sửa">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <a asp-action="Delete" asp-route-id="@maintenance.MaintenanceId" class="btn btn-danger btn-sm" title="Xóa">
+                                                <a asp-action="Delete" asp-route-id="@maintenance.MaintenanceId"
+                                                   class="btn btn-danger"
+                                                   data-toggle="tooltip"
+                                                   title="Xóa">
                                                     <i class="fas fa-trash"></i>
                                                 </a>
                                             </div>
@@ -114,7 +236,7 @@
                             else
                             {
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted">
+                                    <td colspan="7" class="text-center text-muted py-5">
                                         <i class="fas fa-tools fa-3x mb-3"></i>
                                         <p>Chưa có yêu cầu bảo trì nào</p>
                                     </td>
@@ -123,7 +245,81 @@
                         </tbody>
                     </table>
                 </div>
+
+                <div class="mt-3 text-muted">
+                    <small>
+                        <i class="fas fa-info-circle"></i>
+                        Hiển thị <strong id="visibleCount">@Model.Count()</strong> / @Model.Count() yêu cầu bảo trì
+                    </small>
+                </div>
             </div>
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Enable tooltips
+            $('[data-toggle="tooltip"]').tooltip();
+
+            // Combined filter function
+            function applyFilters() {
+                var searchValue = $('#searchBox').val().toLowerCase();
+                var room = $('#roomFilter').val();
+                var status = $('#statusFilter').val();
+                var staff = $('#staffFilter').val();
+
+                var visibleCount = 0;
+
+                $('#maintenanceTable tbody tr').each(function() {
+                    var $row = $(this);
+
+                    // Skip empty state row
+                    if ($row.find('td').length === 1) {
+                        return;
+                    }
+
+                    var text = $row.text().toLowerCase();
+                    var rowStatus = $row.data('status');
+                    var rowRoom = $row.data('room');
+                    var rowStaff = $row.data('staff');
+                    var show = true;
+
+                    // Search filter
+                    if (searchValue && text.indexOf(searchValue) === -1) {
+                        show = false;
+                    }
+
+                    // Room filter
+                    if (room && !text.includes(room.toLowerCase())) {
+                        show = false;
+                    }
+
+                    // Status filter
+                    if (status && rowStatus !== status) {
+                        show = false;
+                    }
+
+                    // Staff filter
+                    if (staff && rowStaff !== staff) {
+                        show = false;
+                    }
+
+                    $row.toggle(show);
+                    if (show) visibleCount++;
+                });
+
+                $('#visibleCount').text(visibleCount);
+            }
+
+            // Attach filter events
+            $('#searchBox, #roomFilter, #statusFilter, #staffFilter').on('keyup change', applyFilters);
+
+            // Auto hide alerts
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 3000);
+        });
+    </script>
+}

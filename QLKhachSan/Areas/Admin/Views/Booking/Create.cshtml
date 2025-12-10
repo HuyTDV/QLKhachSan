@@ -1,7 +1,7 @@
 ﻿@model QLKhachSan.Models.Booking
 
 @{
-    ViewData["Title"] = "Đặt phòng mới";
+    ViewData["Title"] = "Đặt phòng cho khách hàng";
 }
 
 <!-- Content Header -->
@@ -9,11 +9,14 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0">Đặt phòng mới</h1>
+                <h1 class="m-0">
+                    <i class="fas fa-calendar-plus text-primary"></i> Đặt phòng cho khách hàng
+                </h1>
+                <small class="text-muted">Dành cho khách đến trực tiếp hoặc đặt qua điện thoại</small>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home", new { area = "Admin" })">Trang chủ</a></li>
                     <li class="breadcrumb-item"><a asp-action="Index">Đặt phòng</a></li>
                     <li class="breadcrumb-item active">Tạo mới</li>
                 </ol>
@@ -25,83 +28,256 @@
 <!-- Main content -->
 <section class="content">
     <div class="container-fluid">
+        <!-- Step Indicator -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="progress" style="height: 3px;">
+                    <div class="progress-bar bg-primary" id="progressBar" role="progressbar" style="width: 33%"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <div class="text-center step-indicator active" id="step1Indicator">
+                        <div class="step-circle bg-primary text-white">1</div>
+                        <small class="d-block mt-1">Chọn khách hàng</small>
+                    </div>
+                    <div class="text-center step-indicator" id="step2Indicator">
+                        <div class="step-circle bg-secondary text-white">2</div>
+                        <small class="d-block mt-1">Chọn phòng & ngày</small>
+                    </div>
+                    <div class="text-center step-indicator" id="step3Indicator">
+                        <div class="step-circle bg-secondary text-white">3</div>
+                        <small class="d-block mt-1">Xác nhận</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row">
-            <div class="col-md-8 offset-md-2">
+            <div class="col-md-8">
                 <div class="card card-primary">
                     <div class="card-header">
-                        <h3 class="card-title">Thông tin đặt phòng</h3>
+                        <h3 class="card-title"><i class="fas fa-edit"></i> Thông tin đặt phòng</h3>
                     </div>
-                    <form asp-action="Create" method="post">
+                    <form asp-action="Create" method="post" id="bookingForm">
                         <div class="card-body">
                             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                            <div class="form-group">
-                                <label asp-for="UserId" class="control-label">Khách hàng</label>
-                                <select asp-for="UserId" class="form-control" asp-items="ViewBag.UserId">
-                                    <option value="">-- Chọn khách hàng --</option>
-                                </select>
-                                <span asp-validation-for="UserId" class="text-danger"></span>
-                            </div>
+                            <!-- Hidden fields for new customer -->
+                            <input type="hidden" id="newCustomerNameHidden" name="newCustomerName" />
+                            <input type="hidden" id="newCustomerPhoneHidden" name="newCustomerPhone" />
+                            <input type="hidden" id="newCustomerEmailHidden" name="newCustomerEmail" />
 
-                            <div class="form-group">
-                                <label asp-for="RoomId" class="control-label">Phòng</label>
-                                <select asp-for="RoomId" class="form-control" asp-items="ViewBag.RoomId">
-                                    <option value="">-- Chọn phòng --</option>
-                                </select>
-                                <span asp-validation-for="RoomId" class="text-danger"></span>
-                            </div>
+                            <!-- Step 1: Customer Selection -->
+                            <div class="form-section" id="customerSection">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-user"></i> Bước 1: Thông tin khách hàng
+                                </h5>
 
-                            <div class="row">
-                                <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label">
+                                        Chọn hoặc nhập khách hàng <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <select asp-for="UserId" class="form-control" asp-items="ViewBag.UserId" id="customerSelect">
+                                            <option value="">-- Chọn khách hàng có sẵn --</option>
+                                        </select>
+                                        <div class="input-group-append">
+                                            <button type="button" class="btn btn-outline-primary" id="toggleNewCustomer">
+                                                <i class="fas fa-user-plus"></i> Khách mới
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <span asp-validation-for="UserId" class="text-danger"></span>
+                                </div>
+
+                                <!-- New Customer Input (Hidden by default) -->
+                                <div id="newCustomerFields" style="display: none;">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i> Nhập thông tin khách hàng mới (walk-in)
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Họ tên <span class="text-danger">*</span></label>
+                                                <input type="text" id="newCustomerName" class="form-control" placeholder="Nguyễn Văn A" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Số điện thoại <span class="text-danger">*</span></label>
+                                                <input type="tel" id="newCustomerPhone" class="form-control" placeholder="0912345678" />
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="form-group">
-                                        <label asp-for="CheckIn" class="control-label">Ngày nhận phòng</label>
-                                        <input asp-for="CheckIn" type="date" class="form-control" />
-                                        <span asp-validation-for="CheckIn" class="text-danger"></span>
+                                        <label>Email</label>
+                                        <input type="email" id="newCustomerEmail" class="form-control" placeholder="email@example.com" />
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-secondary" id="cancelNewCustomer">
+                                        <i class="fas fa-times"></i> Hủy - Chọn từ danh sách
+                                    </button>
+                                </div>
+
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle"></i> Chọn khách có sẵn hoặc nhập thông tin khách mới
+                                </small>
+                            </div>
+
+                            <hr>
+
+                            <!-- Step 2: Room & Date Selection -->
+                            <div class="form-section" id="roomSection">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-bed"></i> Bước 2: Chọn phòng và thời gian
+                                </h5>
+                                <div class="form-group">
+                                    <label asp-for="RoomId" class="control-label">
+                                        Phòng <span class="text-danger">*</span>
+                                    </label>
+                                    <select asp-for="RoomId" class="form-control" asp-items="ViewBag.RoomId" id="roomSelect">
+                                        <option value="">-- Chọn phòng --</option>
+                                    </select>
+                                    <span asp-validation-for="RoomId" class="text-danger"></span>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="CheckIn" class="control-label">
+                                                Ngày nhận phòng <span class="text-danger">*</span>
+                                            </label>
+                                            <input asp-for="CheckIn" type="date" class="form-control" id="checkInDate" />
+                                            <span asp-validation-for="CheckIn" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="CheckOut" class="control-label">
+                                                Ngày trả phòng <span class="text-danger">*</span>
+                                            </label>
+                                            <input asp-for="CheckOut" type="date" class="form-control" id="checkOutDate" />
+                                            <span asp-validation-for="CheckOut" class="text-danger"></span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label asp-for="CheckOut" class="control-label">Ngày trả phòng</label>
-                                        <input asp-for="CheckOut" type="date" class="form-control" />
-                                        <span asp-validation-for="CheckOut" class="text-danger"></span>
+
+                                <!-- Calculation Summary -->
+                                <div class="alert alert-info" id="nightsSummary" style="display: none;">
+                                    <h6><i class="fas fa-moon"></i> Tóm tắt</h6>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <strong>Số đêm:</strong> <span id="totalNights">0</span> đêm
+                                        </div>
+                                        <div class="col-6">
+                                            <strong>Giá/đêm:</strong> <span id="pricePerNight">0</span> ₫
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="form-group">
-                                <label asp-for="TotalPrice" class="control-label">Tổng tiền (VNĐ)</label>
-                                <input asp-for="TotalPrice" type="number" class="form-control" placeholder="Nhập tổng tiền" />
-                                <span asp-validation-for="TotalPrice" class="text-danger"></span>
-                            </div>
+                            <hr>
 
-                            <div class="form-group">
-                                <label asp-for="Status" class="control-label">Trạng thái</label>
-                                <select asp-for="Status" class="form-control">
-                                    <option value="Pending">Chờ xác nhận</option>
-                                    <option value="Confirmed">Đã xác nhận</option>
-                                    <option value="Checked-in">Đang ở</option>
-                                    <option value="Checked-out">Đã trả phòng</option>
-                                    <option value="Cancelled">Đã hủy</option>
-                                </select>
-                                <span asp-validation-for="Status" class="text-danger"></span>
-                            </div>
+                            <!-- Step 3: Additional Info -->
+                            <div class="form-section" id="additionalSection">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-clipboard-check"></i> Bước 3: Thông tin bổ sung
+                                </h5>
 
-                            <div class="form-group">
-                                <label asp-for="ServicesUsed" class="control-label">Dịch vụ sử dụng</label>
-                                <textarea asp-for="ServicesUsed" class="form-control" rows="3" placeholder="Ví dụ: Breakfast, Airport Pickup"></textarea>
-                                <span asp-validation-for="ServicesUsed" class="text-danger"></span>
+                                <div class="form-group">
+                                    <label asp-for="TotalPrice" class="control-label">
+                                        Tổng tiền (VNĐ) <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="TotalPrice" type="number" class="form-control" id="totalPrice" placeholder="Tự động tính toán" readonly />
+                                    <span asp-validation-for="TotalPrice" class="text-danger"></span>
+                                    <small class="form-text text-muted">
+                                        <i class="fas fa-calculator"></i> Tổng tiền được tính tự động dựa trên số đêm và giá phòng
+                                    </small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Status" class="control-label">Trạng thái</label>
+                                    <select asp-for="Status" class="form-control">
+                                        <option value="Pending">Chờ xác nhận</option>
+                                        <option value="Confirmed" selected>Đã xác nhận</option>
+                                        <option value="Checked-in">Đang ở</option>
+                                    </select>
+                                    <span asp-validation-for="Status" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="ServicesUsed" class="control-label">
+                                        Dịch vụ sử dụng <small class="text-muted">(Tùy chọn)</small>
+                                    </label>
+                                    <textarea asp-for="ServicesUsed" class="form-control" rows="3" placeholder="Ví dụ: Breakfast, Airport Pickup, Spa..."></textarea>
+                                    <span asp-validation-for="ServicesUsed" class="text-danger"></span>
+                                </div>
                             </div>
                         </div>
 
                         <div class="card-footer">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Lưu
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Xác nhận đặt phòng
                             </button>
-                            <a asp-action="Index" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Quay lại
+                            <a asp-action="Index" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times"></i> Hủy
                             </a>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- Sidebar: Preview & Info -->
+            <div class="col-md-4">
+                <!-- Customer Info Card -->
+                <div class="card card-widget widget-user-2" id="customerInfoCard" style="display: none;">
+                    <div class="card-header bg-info">
+                        <h3 class="card-title"><i class="fas fa-user"></i> Thông tin khách hàng</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="customerInfo">
+                            <p class="text-muted">Chọn khách hàng để xem thông tin</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Room Preview Card -->
+                <div class="card card-primary" id="roomPreviewCard" style="display: none;">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-door-open"></i> Thông tin phòng</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="roomPreview">
+                            <p class="text-muted">Chọn phòng để xem thông tin</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking Summary -->
+                <div class="card card-success" id="bookingSummaryCard" style="display: none;">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-file-invoice"></i> Tóm tắt đặt phòng</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="bookingSummary"></div>
+                    </div>
+                </div>
+
+                <!-- Help Card -->
+                <div class="card card-warning">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-question-circle"></i> Hướng dẫn</h3>
+                    </div>
+                    <div class="card-body">
+                        <ol class="pl-3">
+                            <li>Chọn khách hàng từ danh sách</li>
+                            <li>Chọn phòng còn trống</li>
+                            <li>Chọn ngày check-in và check-out</li>
+                            <li>Kiểm tra tổng tiền tự động</li>
+                            <li>Xác nhận đặt phòng</li>
+                        </ol>
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-lightbulb"></i> <strong>Mẹo:</strong> Tổng tiền sẽ được tính tự động khi bạn chọn đầy đủ thông tin!
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -112,4 +288,223 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <!-- Select2 CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            let isNewCustomer = false;
+
+            // Toggle new customer form
+            $('#toggleNewCustomer').on('click', function() {
+                isNewCustomer = true;
+                $('#customerSelect').prop('disabled', true).val('').trigger('change');
+                $('#newCustomerFields').slideDown();
+                $(this).prop('disabled', true);
+                updateStep(1);
+            });
+
+            // Cancel new customer
+            $('#cancelNewCustomer').on('click', function() {
+                isNewCustomer = false;
+                $('#customerSelect').prop('disabled', false);
+                $('#newCustomerFields').slideUp();
+                $('#toggleNewCustomer').prop('disabled', false);
+                $('#newCustomerName, #newCustomerPhone, #newCustomerEmail').val('');
+            });
+
+            // Validate new customer fields
+            $('#newCustomerName, #newCustomerPhone').on('blur', function() {
+                const name = $('#newCustomerName').val().trim();
+                const phone = $('#newCustomerPhone').val().trim();
+
+                if (isNewCustomer && name && phone) {
+                    $('#newCustomerNameHidden').val(name);
+                    $('#newCustomerPhoneHidden').val(phone);
+                    $('#newCustomerEmailHidden').val($('#newCustomerEmail').val().trim());
+
+                    $('#customerInfoCard').slideDown();
+                    $('#customerInfo').html(`
+                        <div class="alert alert-success">
+                            <p><i class="fas fa-user-plus"></i> <strong>Khách mới</strong></p>
+                            <p><i class="fas fa-user"></i> ${name}</p>
+                            <p><i class="fas fa-phone"></i> ${phone}</p>
+                        </div>
+                    `);
+                }
+            });
+
+            // Initialize Select2
+            $('#customerSelect').select2({
+                theme: 'bootstrap-5',
+                placeholder: '🔍 Tìm kiếm khách hàng...',
+                allowClear: true,
+                width: '100%',
+                language: {
+                    noResults: function() { return "Không tìm thấy khách hàng"; },
+                    searching: function() { return "Đang tìm kiếm..."; }
+                }
+            });
+
+            $('#roomSelect').select2({
+                theme: 'bootstrap-5',
+                placeholder: '🔍 Tìm kiếm phòng...',
+                allowClear: true,
+                width: '100%'
+            });
+
+            // ===== PHẦN QUAN TRỌNG: Parse dữ liệu phòng từ Controller =====
+            const roomData = @Html.Raw(Json.Serialize(ViewBag.RoomData ?? new List<object>()));
+            const roomPrices = {};
+
+            // Tạo dictionary để tra cứu giá phòng theo roomId
+            if (roomData && roomData.length > 0) {
+                roomData.forEach(room => {
+                    roomPrices[room.roomId] = room.price;
+                });
+                console.log('Room prices loaded:', roomPrices);
+            } else {
+                console.error('No room data available!');
+                alert('Lỗi: Không tải được dữ liệu phòng. Vui lòng tải lại trang.');
+            }
+
+            // Step progress
+            function updateStep(step) {
+                const progress = step * 33.33;
+                $('#progressBar').css('width', progress + '%');
+
+                $('.step-indicator').removeClass('active');
+                for(let i = 1; i <= step; i++) {
+                    $(`#step${i}Indicator`).addClass('active');
+                    $(`#step${i}Indicator .step-circle`).removeClass('bg-secondary').addClass('bg-primary');
+                }
+            }
+
+            // Customer selection
+            $('#customerSelect').on('change', function() {
+                const customerId = $(this).val();
+                if (customerId && !isNewCustomer) {
+                    updateStep(1);
+                    $('#customerInfoCard').slideDown();
+                    $('#customerInfo').html(`
+                        <p><i class="fas fa-user"></i> <strong>Tên:</strong> ${$(this).find('option:selected').text()}</p>
+                        <p><i class="fas fa-history"></i> <strong>Lịch sử:</strong> Đang tải...</p>
+                    `);
+                } else if (!customerId && !isNewCustomer) {
+                    $('#customerInfoCard').slideUp();
+                }
+            });
+
+            // Room selection - ĐÃ SỬA: Lấy giá từ roomPrices
+            $('#roomSelect').on('change', function() {
+                const roomId = $(this).val();
+                if (roomId) {
+                    const pricePerNight = roomPrices[roomId];
+
+                    if (!pricePerNight) {
+                        console.error('Price not found for roomId:', roomId);
+                        alert('Không tìm thấy giá phòng! Vui lòng chọn lại.');
+                        return;
+                    }
+
+                    updateStep(2);
+                    $('#roomPreviewCard').slideDown();
+                    const roomName = $(this).find('option:selected').text();
+
+                    $('#roomPreview').html(`
+                        <p><i class="fas fa-bed"></i> <strong>Phòng:</strong> ${roomName}</p>
+                        <p><i class="fas fa-money-bill"></i> <strong>Giá:</strong> ${pricePerNight.toLocaleString('vi-VN')} ₫/đêm</p>
+                    `);
+
+                    calculateTotal();
+                } else {
+                    $('#roomPreviewCard').slideUp();
+                }
+            });
+
+            // Date selection
+            $('#checkInDate, #checkOutDate').on('change', function() {
+                calculateTotal();
+            });
+
+            // Calculate total price - ĐÃ SỬA: Sử dụng roomPrices
+            function calculateTotal() {
+                const roomId = $('#roomSelect').val();
+                const checkIn = new Date($('#checkInDate').val());
+                const checkOut = new Date($('#checkOutDate').val());
+
+                if (roomId && checkIn && checkOut && checkOut > checkIn) {
+                    const pricePerNight = roomPrices[roomId];
+
+                    if (!pricePerNight) {
+                        console.error('Price not found for room:', roomId);
+                        alert('Không lấy được giá phòng. Vui lòng chọn lại phòng.');
+                        return;
+                    }
+
+                    updateStep(3);
+
+                    const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+                    const total = nights * pricePerNight;
+
+                    $('#totalNights').text(nights);
+                    $('#pricePerNight').text(pricePerNight.toLocaleString('vi-VN'));
+                    $('#totalPrice').val(total);
+                    $('#nightsSummary').slideDown();
+
+                    $('#bookingSummaryCard').slideDown();
+                    $('#bookingSummary').html(`
+                        <h5 class="text-success">Tổng cộng: ${total.toLocaleString('vi-VN')} ₫</h5>
+                        <hr>
+                        <p><i class="fas fa-calendar"></i> ${nights} đêm × ${pricePerNight.toLocaleString('vi-VN')} ₫</p>
+                        <p><i class="fas fa-calendar-check"></i> ${checkIn.toLocaleDateString('vi-VN')} - ${checkOut.toLocaleDateString('vi-VN')}</p>
+                    `);
+                } else {
+                    $('#nightsSummary').slideUp();
+                    $('#bookingSummaryCard').slideUp();
+                }
+            }
+
+            // Set min date for check-in (today)
+            const today = new Date().toISOString().split('T')[0];
+            $('#checkInDate').attr('min', today);
+
+            // Update checkout min date when checkin changes
+            $('#checkInDate').on('change', function() {
+                const checkInDate = $(this).val();
+                if (checkInDate) {
+                    $('#checkOutDate').attr('min', checkInDate);
+                }
+            });
+        });
+    </script>
+
+    <style>
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .step-indicator.active .step-circle {
+            transform: scale(1.1);
+            transition: all 0.3s ease;
+        }
+
+        .form-section {
+            padding: 15px;
+            border-left: 3px solid #007bff;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
 }

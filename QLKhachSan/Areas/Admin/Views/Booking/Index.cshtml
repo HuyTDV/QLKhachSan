@@ -1,10 +1,10 @@
 ﻿@model IEnumerable<QLKhachSan.Models.Booking>
-
+@using QLKhachSan.Models
 @{
     ViewData["Title"] = "Quản lý đặt phòng";
+    var branches = ViewBag.Branches as List<HotelBranch> ?? new List<HotelBranch>();
 }
 
-<!-- Content Header -->
 <div class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
@@ -21,16 +21,100 @@
     </div>
 </div>
 
-<!-- Main content -->
 <section class="content">
     <div class="container-fluid">
+        <!-- TOOLBAR với Export luôn nhìn thấy -->
+        <div class="card card-outline card-primary mb-3">
+            <div class="card-body p-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <button type="button" class="btn btn-primary" data-toggle="collapse" data-target="#filterCollapse">
+                            <i class="fas fa-filter"></i> Bộ lọc
+                        </button>
+                    </div>
+                    <div>
+                        <a href="@Url.Action("ExportExcel", "Booking", new { branchId = ViewBag.BranchId, status = ViewBag.Status, fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate, searchTerm = ViewBag.SearchTerm })" class="btn btn-success">
+                            <i class="fas fa-file-excel"></i> Xuất Excel
+                        </a>
+                        <a href="@Url.Action("ExportPdf", "Booking", new { branchId = ViewBag.BranchId, status = ViewBag.Status, fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate, searchTerm = ViewBag.SearchTerm })" class="btn btn-danger" target="_blank">
+                            <i class="fas fa-file-pdf"></i> Xuất PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTER CARD (Thu gọn mặc định) -->
+        <div class="collapse" id="filterCollapse">
+            <div class="card card-secondary mb-3">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-filter"></i> Bộ lọc nâng cao</h3>
+                </div>
+                <div class="card-body">
+                    <form method="get" asp-action="Index" asp-controller="Booking" asp-area="Admin">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Chi nhánh</label>
+                                    <select name="branchId" class="form-control">
+                                        <option value="">-- Tất cả chi nhánh --</option>
+                                        @foreach (var branch in branches)
+                                        {
+                                            <option value="@branch.BranchId" selected="@(ViewBag.BranchId == branch.BranchId)">@branch.BranchName</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Trạng thái</label>
+                                    <select name="status" class="form-control">
+                                        <option value="">-- Tất cả --</option>
+                                        <option value="Pending" selected="@(ViewBag.Status == "Pending")">Chờ xác nhận</option>
+                                        <option value="Confirmed" selected="@(ViewBag.Status == "Confirmed")">Đã xác nhận</option>
+                                        <option value="Checked-in" selected="@(ViewBag.Status == "Checked-in")">Đang ở</option>
+                                        <option value="Checked-out" selected="@(ViewBag.Status == "Checked-out")">Đã trả phòng</option>
+                                        <option value="Cancelled" selected="@(ViewBag.Status == "Cancelled")">Đã hủy</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Từ ngày</label>
+                                    <input type="date" name="fromDate" class="form-control" value="@(ViewBag.FromDate != null ? ((DateOnly)ViewBag.FromDate).ToString("yyyy-MM-dd") : "")" />
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Đến ngày</label>
+                                    <input type="date" name="toDate" class="form-control" value="@(ViewBag.ToDate != null ? ((DateOnly)ViewBag.ToDate).ToString("yyyy-MM-dd") : "")" />
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Tìm kiếm</label>
+                                    <input type="text" name="searchTerm" class="form-control" placeholder="Tên khách, số phòng..." value="@ViewBag.SearchTerm" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Áp dụng</button>
+                                <a href="@Url.Action("Index", "Booking")" class="btn btn-secondary"><i class="fas fa-redo"></i> Reset</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- DANH SÁCH BOOKING -->
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Danh sách đặt phòng</h3>
+                <h3 class="card-title"><i class="fas fa-list"></i> Danh sách đặt phòng</h3>
                 <div class="card-tools">
-                    <a asp-action="Create" class="btn btn-success btn-sm">
-                        <i class="fas fa-plus"></i> Đặt phòng mới
-                    </a>
+                    <span class="badge badge-primary mr-2">@Model.Count() booking</span>
+                    <a asp-action="Create" class="btn btn-success btn-sm"><i class="fas fa-plus"></i> Đặt phòng mới</a>
                 </div>
             </div>
             <div class="card-body">
@@ -38,7 +122,38 @@
                 {
                     <div class="alert alert-success alert-dismissible fade show">
                         <button type="button" class="close" data-dismiss="alert">&times;</button>
-                        @TempData["Success"]
+                        <i class="fas fa-check-circle"></i> @TempData["Success"]
+                    </div>
+                }
+
+                @if (ViewBag.BranchId != null || !string.IsNullOrEmpty(ViewBag.Status) || ViewBag.FromDate != null || ViewBag.ToDate != null || !string.IsNullOrEmpty(ViewBag.SearchTerm))
+                {
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> <strong>Đang lọc:</strong>
+                        @if (ViewBag.BranchId != null)
+                        {
+                            var selectedBranch = branches.FirstOrDefault(b => b.BranchId == (int)ViewBag.BranchId);
+                            if (selectedBranch != null)
+                            {
+                                <span class="badge badge-secondary">Chi nhánh: @selectedBranch.BranchName</span>
+                            }
+                        }
+                        @if (!string.IsNullOrEmpty(ViewBag.Status))
+                        {
+                            <span class="badge badge-secondary">Trạng thái: @ViewBag.Status</span>
+                        }
+                        @if (ViewBag.FromDate != null)
+                        {
+                            <span class="badge badge-secondary">Từ: @((DateOnly)ViewBag.FromDate).ToString("dd/MM/yyyy")</span>
+                        }
+                        @if (ViewBag.ToDate != null)
+                        {
+                            <span class="badge badge-secondary">Đến: @((DateOnly)ViewBag.ToDate).ToString("dd/MM/yyyy")</span>
+                        }
+                        @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                        {
+                            <span class="badge badge-secondary">Từ khóa: @ViewBag.SearchTerm</span>
+                        }
                     </div>
                 }
 
@@ -49,6 +164,7 @@
                                 <th>Mã booking</th>
                                 <th>Khách hàng</th>
                                 <th>Phòng</th>
+                                <th>Chi nhánh</th>
                                 <th>Check-in</th>
                                 <th>Check-out</th>
                                 <th>Tổng tiền</th>
@@ -66,9 +182,10 @@
                                         <td><strong>#@booking.BookingId</strong></td>
                                         <td>@(booking.User?.FullName ?? "N/A")</td>
                                         <td>Phòng @(booking.Room?.RoomNumber ?? "N/A")</td>
-                                        <td>@booking.CheckIn?.ToString("dd/MM/yyyy")</td>
-                                        <td>@booking.CheckOut?.ToString("dd/MM/yyyy")</td>
-                                        <td>@booking.TotalPrice?.ToString("N0") ₫</td>
+                                        <td>@(booking.Room?.Branch?.BranchName ?? "N/A")</td>
+                                        <td>@(booking.CheckIn?.ToString("dd/MM/yyyy") ?? "N/A")</td>
+                                        <td>@(booking.CheckOut?.ToString("dd/MM/yyyy") ?? "N/A")</td>
+                                        <td><strong>@(booking.TotalPrice?.ToString("N0") ?? "0") ₫</strong></td>
                                         <td>
                                             @if (booking.Status == "Confirmed")
                                             {
@@ -76,33 +193,36 @@
                                             }
                                             else if (booking.Status == "Pending")
                                             {
+
                                                 <span class="badge badge-warning">Chờ xác nhận</span>
                                             }
                                             else if (booking.Status == "Checked-in")
                                             {
+
                                                 <span class="badge badge-info">Đang ở</span>
+                                            }
+                                            else if (booking.Status == "Checked-out")
+                                            {
+
+                                                <span class="badge badge-secondary">Đã trả phòng</span>
                                             }
                                             else if (booking.Status == "Cancelled")
                                             {
+
                                                 <span class="badge badge-danger">Đã hủy</span>
                                             }
                                             else
                                             {
-                                                <span class="badge badge-secondary">@booking.Status</span>
+
+                                                <span class="badge badge-dark">@booking.Status</span>
                                             }
                                         </td>
-                                        <td>@booking.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>@(booking.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
                                         <td>
                                             <div class="btn-group">
-                                                <a asp-action="Details" asp-route-id="@booking.BookingId" class="btn btn-info btn-sm" title="Chi tiết">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a asp-action="Edit" asp-route-id="@booking.BookingId" class="btn btn-warning btn-sm" title="Sửa">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <a asp-action="Delete" asp-route-id="@booking.BookingId" class="btn btn-danger btn-sm" title="Xóa">
-                                                    <i class="fas fa-trash"></i>
-                                                </a>
+                                                <a asp-action="Details" asp-route-id="@booking.BookingId" class="btn btn-info btn-sm" title="Chi tiết"><i class="fas fa-eye"></i></a>
+                                                <a asp-action="Edit" asp-route-id="@booking.BookingId" class="btn btn-warning btn-sm" title="Sửa"><i class="fas fa-edit"></i></a>
+                                                <a asp-action="Delete" asp-route-id="@booking.BookingId" class="btn btn-danger btn-sm" title="Xóa"><i class="fas fa-trash"></i></a>
                                             </div>
                                         </td>
                                     </tr>
@@ -111,9 +231,9 @@
                             else
                             {
                                 <tr>
-                                    <td colspan="9" class="text-center text-muted">
-                                        <i class="fas fa-inbox fa-3x mb-3"></i>
-                                        <p>Chưa có booking nào</p>
+                                    <td colspan="10" class="text-center text-muted py-4">
+                                        <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                        <p class="mb-0">Không tìm thấy booking nào</p>
                                     </td>
                                 </tr>
                             }
@@ -124,3 +244,9 @@
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        setTimeout(function() { $('.alert-success').fadeOut('slow'); }, 3000);
+    </script>
+}
