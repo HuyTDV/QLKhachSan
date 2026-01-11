@@ -14,10 +14,64 @@ namespace QLKhachSan.Areas.Admin.Controllers
             _context = context;
         }
 
-        // GET: Admin/Promotion
-        public async Task<IActionResult> Index()
+        // GET: Admin/Promotion - CÓ PHÂN TRANG
+        public async Task<IActionResult> Index(
+            string searchTerm,
+            bool? isActive,
+            int pageNumber = 1,
+            int pageSize = 10)
         {
-            return View(await _context.Promotions.ToListAsync());
+            // Validate pageSize
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            var query = _context.Promotions.AsQueryable();
+
+            // Apply filters
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(p =>
+                    (p.Code != null && p.Code.Contains(searchTerm)) ||
+                    (p.Description != null && p.Description.Contains(searchTerm)));
+            }
+
+            if (isActive.HasValue)
+            {
+                var today = DateOnly.FromDateTime(DateTime.Now);
+                if (isActive.Value)
+                {
+                    query = query.Where(p => p.StartDate <= today && p.EndDate >= today);
+                }
+                else
+                {
+                    query = query.Where(p => p.EndDate < today);
+                }
+            }
+
+            // Get total count before pagination
+            var totalItems = await query.CountAsync();
+
+            // Apply sorting and pagination
+            var promotions = await query
+                .OrderByDescending(p => p.StartDate)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            // Calculate pagination info
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            // Pass data to view
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.IsActive = isActive;
+
+            // Pagination info
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+
+            return View(promotions);
         }
 
         // GET: Admin/Promotion/Details/5
@@ -109,7 +163,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
             return View(promotion);
         }
 
-        // GET: Admin/Promotion/Delete/5
+        // Corrected the return type from IActionTask to IActionResult
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)

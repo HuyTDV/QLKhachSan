@@ -15,13 +15,63 @@ namespace QLKhachSan.Areas.Admin.Controllers
             _context = context;
         }
 
-        // GET: Admin/HotelBranch
-        public async Task<IActionResult> Index()
+        // GET: Admin/HotelBranch - CÓ PHÂN TRANG
+        public async Task<IActionResult> Index(
+            int? hotelId,
+            string city,
+            string searchTerm,
+            int pageNumber = 1,
+            int pageSize = 10)
         {
-            var branches = await _context.HotelBranches
+            // Validate pageSize
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            var query = _context.HotelBranches
                 .Include(h => h.Hotel)
                 .Include(h => h.Manager)
+                .AsQueryable();
+
+            // Apply filters
+            if (hotelId.HasValue)
+                query = query.Where(h => h.HotelId == hotelId.Value);
+
+            if (!string.IsNullOrEmpty(city))
+                query = query.Where(h => h.City != null && h.City.Contains(city));
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(h =>
+                    (h.BranchName != null && h.BranchName.Contains(searchTerm)) ||
+                    (h.Address != null && h.Address.Contains(searchTerm)) ||
+                    (h.Phone != null && h.Phone.Contains(searchTerm)));
+            }
+
+            // Get total count before pagination
+            var totalItems = await query.CountAsync();
+
+            // Apply sorting and pagination
+            var branches = await query
+                .OrderBy(h => h.BranchName)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            // Calculate pagination info
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            // Pass data to view
+            ViewBag.Hotels = await _context.Hotels.ToListAsync();
+            ViewBag.HotelId = hotelId;
+            ViewBag.City = city;
+            ViewBag.SearchTerm = searchTerm;
+
+            // Pagination info
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+
             return View(branches);
         }
 

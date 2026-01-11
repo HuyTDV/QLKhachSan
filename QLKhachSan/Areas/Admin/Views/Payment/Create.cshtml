@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Thêm thanh toán";
+    var bookingDetails = ViewBag.BookingDetails as QLKhachSan.Models.Booking;
 }
 
 <!-- Content Header -->
@@ -9,11 +10,11 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0">Thêm thanh toán mới</h1>
+                <h1 class="m-0"><i class="fas fa-plus-circle"></i> Thêm thanh toán mới</h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")"><i class="fas fa-home"></i> Trang chủ</a></li>
                     <li class="breadcrumb-item"><a asp-action="Index">Thanh toán</a></li>
                     <li class="breadcrumb-item active">Tạo mới</li>
                 </ol>
@@ -26,77 +27,702 @@
 <section class="content">
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-8 offset-md-2">
+            <!-- Form thanh toán -->
+            <div class="col-lg-8">
                 <div class="card card-success">
                     <div class="card-header">
-                        <h3 class="card-title">Thông tin thanh toán</h3>
+                        <h3 class="card-title"><i class="fas fa-file-invoice-dollar"></i> Thông tin thanh toán</h3>
                     </div>
-                    <form asp-action="Create" method="post">
+                    <form asp-action="Create" method="post" id="paymentForm">
                         <div class="card-body">
                             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
+                            <!-- Chọn booking -->
                             <div class="form-group">
-                                <label asp-for="BookingId" class="control-label">Booking <span class="text-danger">*</span></label>
-                                <select asp-for="BookingId" class="form-control" asp-items="ViewBag.BookingId">
-                                    <option value="">-- Chọn booking --</option>
+                                <label asp-for="BookingId" class="control-label">
+                                    <i class="fas fa-calendar-check"></i> Booking <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="BookingId" class="form-control select2" asp-items="ViewBag.BookingId" id="bookingSelect" required>
+                                    <option value="">-- Chọn booking cần thanh toán --</option>
                                 </select>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle"></i> Chỉ hiển thị các booking chưa có thanh toán
+                                </small>
                                 <span asp-validation-for="BookingId" class="text-danger"></span>
                             </div>
 
+                            <!-- Booking details preview -->
+                            <div id="bookingDetailsCard" class="alert alert-info" style="display: none;">
+                                <h5 class="alert-heading"><i class="fas fa-info-circle"></i> Thông tin booking</h5>
+                                <div id="bookingDetailsContent" class="table-responsive"></div>
+                            </div>
+
+                            <!-- Số tiền -->
                             <div class="form-group">
-                                <label asp-for="Amount" class="control-label">Số tiền (VNĐ) <span class="text-danger">*</span></label>
-                                <input asp-for="Amount" type="number" class="form-control" placeholder="Nhập số tiền" />
+                                <label asp-for="Amount" class="control-label">
+                                    <i class="fas fa-money-bill-wave"></i> Số tiền (VNĐ) <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group input-group-lg">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-dollar-sign"></i>
+                                        </span>
+                                    </div>
+                                    <input asp-for="Amount" type="number" class="form-control" id="amountInput"
+                                           placeholder="Nhập số tiền" min="1000" step="1000" required />
+                                    <div class="input-group-append">
+                                        <span class="input-group-text">VNĐ</span>
+                                    </div>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Số tiền hiển thị: <strong id="amountPreview" class="text-success">0 VNĐ</strong>
+                                </small>
                                 <span asp-validation-for="Amount" class="text-danger"></span>
                             </div>
 
+                            <!-- ===== THÊM MỚI: MÃ GIẢM GIÁ ===== -->
                             <div class="form-group">
-                                <label asp-for="PaymentMethod" class="control-label">Phương thức thanh toán <span class="text-danger">*</span></label>
-                                <select asp-for="PaymentMethod" class="form-control">
-                                    <option value="">-- Chọn phương thức --</option>
-                                    <option value="Cash">Tiền mặt</option>
-                                    <option value="Credit Card">Thẻ tín dụng</option>
-                                    <option value="Bank Transfer">Chuyển khoản ngân hàng</option>
-                                    <option value="E-wallet">Ví điện tử (Momo, ZaloPay...)</option>
-                                </select>
-                                <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+                                <label class="control-label">
+                                    <i class="fas fa-tag"></i> Mã giảm giá (không bắt buộc)
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" id="promotionCodeInput" class="form-control"
+                                           placeholder="Nhập mã giảm giá (nếu có)" />
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary" type="button" id="applyPromoBtn">
+                                            <i class="fas fa-check"></i> Áp dụng
+                                        </button>
+                                    </div>
+                                </div>
+                                <small class="form-text text-muted">
+                                    <span id="promoMessage"></span>
+                                </small>
                             </div>
 
+                            <!-- Hidden fields để lưu thông tin giảm giá -->
+                            <input type="hidden" asp-for="PromotionId" id="promotionId" />
+                            <input type="hidden" asp-for="DiscountAmount" id="discountAmount" />
+                            <input type="hidden" asp-for="PromotionCode" id="promotionCode" />
+
+                            <!-- Hiển thị thông tin giảm giá -->
+                            <div id="discountInfoCard" class="alert alert-success" style="display: none;">
+                                <h5 class="alert-heading">
+                                    <i class="fas fa-tag"></i> Đã áp dụng mã giảm giá: <strong id="appliedPromoCode"></strong>
+                                </h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Giảm giá:</strong> <span id="discountValue" class="text-danger"></span></p>
+                                    </div>
+                                    <div class="col-md-6 text-right">
+                                        <button type="button" class="btn btn-sm btn-warning" id="removePromoBtn">
+                                            <i class="fas fa-times"></i> Hủy mã
+                                        </button>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <strong>Tổng tiền gốc:</strong>
+                                    </div>
+                                    <div class="col-6 text-right">
+                                        <span id="originalAmount">0 VNĐ</span>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <strong class="text-danger">Giảm giá:</strong>
+                                    </div>
+                                    <div class="col-6 text-right">
+                                        <span id="discountAmountDisplay" class="text-danger">0 VNĐ</span>
+                                    </div>
+                                </div>
+                                <div class="row mt-2 pt-2 border-top">
+                                    <div class="col-6">
+                                        <strong class="h5">Tổng thanh toán:</strong>
+                                    </div>
+                                    <div class="col-6 text-right">
+                                        <strong class="h5 text-success" id="finalAmount">0 VNĐ</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- ===== KẾT THÚC PHẦN MÃ GIẢM GIÁ ===== -->
+                            <!-- Phương thức thanh toán -->
                             <div class="form-group">
-                                <label asp-for="TransactionCode" class="control-label">Mã giao dịch</label>
-                                <input asp-for="TransactionCode" class="form-control" placeholder="Ví dụ: TXN20251209A" />
-                                <small class="form-text text-muted">Để trống nếu thanh toán bằng tiền mặt</small>
-                                <span asp-validation-for="TransactionCode" class="text-danger"></span>
+                                <label class="control-label">
+                                    <i class="fas fa-credit-card"></i> Phương thức thanh toán <span class="text-danger">*</span>
+                                </label>
+                                <div class="row">
+                                    <!-- Direct payment methods -->
+                                    <div class="col-md-6">
+                                        <div class="card payment-method-card h-100" data-method="direct">
+                                            <div class="card-body text-center d-flex flex-column justify-content-center">
+                                                <input type="radio" name="paymentType" value="direct" id="directPayment" checked hidden>
+                                                <i class="fas fa-hand-holding-usd fa-4x text-success mb-3"></i>
+                                                <h4 class="font-weight-bold">Thanh toán trực tiếp</h4>
+                                                <p class="text-muted mb-0">Tiền mặt, thẻ, chuyển khoản tại quầy</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- VNPay payment -->
+                                    <div class="col-md-6">
+                                        <div class="card payment-method-card h-100" data-method="vnpay">
+                                            <div class="card-body text-center d-flex flex-column justify-content-center">
+                                                <input type="radio" name="paymentType" value="vnpay" id="vnpayPayment" hidden>
+                                                <i class="fas fa-mobile-alt fa-4x text-danger mb-3"></i>
+                                                <h4 class="font-weight-bold">VNPay QR</h4>
+                                                <p class="text-muted mb-2">Quét mã QR thanh toán online</p>
+                                                <span class="badge badge-warning">Demo Sandbox</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
+                            <!-- Direct payment details (shown when direct is selected) -->
+                            <div id="directPaymentDetails">
+                                <div class="form-group">
+                                    <label asp-for="PaymentMethod" class="control-label">
+                                        Chi tiết phương thức <span class="text-danger">*</span>
+                                    </label>
+                                    <select asp-for="PaymentMethod" class="form-control form-control-lg" id="paymentMethodSelect" required>
+                                        <option value="">-- Chọn phương thức --</option>
+                                        <option value="Cash">💵 Tiền mặt</option>
+                                        <option value="Credit Card">💳 Thẻ tín dụng</option>
+                                        <option value="Bank Transfer">🏦 Chuyển khoản ngân hàng</option>
+                                        <option value="E-wallet">📱 Ví điện tử (Momo, ZaloPay...)</option>
+                                    </select>
+                                    <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="TransactionCode" class="control-label">
+                                        <i class="fas fa-barcode"></i> Mã giao dịch
+                                    </label>
+                                    <input asp-for="TransactionCode" class="form-control"
+                                           placeholder="Ví dụ: TXN20251209A" id="transactionCodeInput" />
+                                    <small class="form-text text-muted">Để trống nếu thanh toán bằng tiền mặt. Hệ thống sẽ tự động tạo mã.</small>
+                                    <span asp-validation-for="TransactionCode" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- VNPay info (shown when vnpay is selected) -->
+                            <div id="vnpayPaymentDetails" style="display: none;">
+                                <div class="alert alert-info">
+                                    <h5><i class="fas fa-info-circle"></i> Thanh toán qua VNPay</h5>
+                                    <p class="mb-2">Khi nhấn nút "Thanh toán VNPay", bạn sẽ được chuyển đến cổng thanh toán VNPay Sandbox.</p>
+                                    <ul class="mb-0">
+                                        <li>Đây là môi trường <strong>Demo Sandbox</strong> - không sử dụng tiền thật</li>
+                                        <li>Sử dụng thông tin thẻ test bên dưới để thanh toán</li>
+                                        <li><strong class="text-danger">KHÔNG sử dụng thẻ thật!</strong></li>
+                                    </ul>
+                                </div>
+
+                                <div class="card card-outline card-warning">
+                                    <div class="card-header bg-warning">
+                                        <h5 class="mb-0"><i class="fas fa-credit-card"></i> Thông tin thẻ test VNPay</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-muted mb-3">Sử dụng thông tin dưới đây để test thanh toán trên cổng VNPay Sandbox:</p>
+                                        <table class="table table-bordered">
+                                            <tbody>
+                                                <tr>
+                                                    <th width="35%"><i class="fas fa-university"></i> Ngân hàng:</th>
+                                                    <td><strong>NCB</strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <th><i class="fas fa-credit-card"></i> Số thẻ:</th>
+                                                    <td><code class="h6">9704198526191432198</code></td>
+                                                </tr>
+                                                <tr>
+                                                    <th><i class="fas fa-user"></i> Tên chủ thẻ:</th>
+                                                    <td><strong>NGUYEN VAN A</strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <th><i class="fas fa-calendar"></i> Ngày phát hành:</th>
+                                                    <td><strong>07/15</strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <th><i class="fas fa-key"></i> Mật khẩu OTP:</th>
+                                                    <td><code class="h6">123456</code></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div class="alert alert-success mb-0">
+                                            <i class="fas fa-check-circle"></i> <strong>Lưu ý:</strong> Giao dịch sẽ được xử lý ngay lập tức trong môi trường test.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Ghi chú -->
                             <div class="form-group">
-                                <label asp-for="Notes" class="control-label">Ghi chú</label>
-                                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Ghi chú về thanh toán..."></textarea>
+                                <label asp-for="Notes" class="control-label">
+                                    <i class="fas fa-sticky-note"></i> Ghi chú
+                                </label>
+                                <textarea asp-for="Notes" class="form-control" rows="3"
+                                          placeholder="Ghi chú về thanh toán (nếu có)..."></textarea>
                                 <span asp-validation-for="Notes" class="text-danger"></span>
                             </div>
 
-                            <div class="alert alert-info">
-                                <i class="icon fas fa-info-circle"></i>
-                                <strong>Lưu ý:</strong> Ngày thanh toán sẽ được tự động ghi nhận là thời điểm hiện tại.
+                            <div class="alert alert-warning">
+                                <i class="icon fas fa-exclamation-triangle"></i>
+                                <strong>Lưu ý quan trọng:</strong>
+                                <ul class="mb-0 pl-3 mt-2">
+                                    <li>Ngày thanh toán sẽ được tự động ghi nhận là thời điểm hiện tại</li>
+                                    <li>Sau khi thanh toán thành công, trạng thái booking sẽ được cập nhật thành "Đã xác nhận"</li>
+                                    <li>Vui lòng kiểm tra kỹ thông tin trước khi xác nhận thanh toán</li>
+                                </ul>
                             </div>
                         </div>
 
                         <div class="card-footer">
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-save"></i> Lưu
+                            <button type="submit" class="btn btn-success btn-lg" id="directSubmitBtn">
+                                <i class="fas fa-check-circle"></i> Xác nhận thanh toán
                             </button>
-                            <a asp-action="Index" class="btn btn-secondary">
+                            <button type="button" class="btn btn-danger btn-lg" id="vnpaySubmitBtn" style="display: none;">
+                                <i class="fas fa-qrcode"></i> Thanh toán VNPay
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary btn-lg">
                                 <i class="fas fa-arrow-left"></i> Quay lại
                             </a>
                         </div>
                     </form>
                 </div>
             </div>
+
+            <!-- Sidebar info -->
+            <div class="col-lg-4">
+                <!-- Payment guide -->
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-question-circle"></i> Hướng dẫn</h3>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="font-weight-bold"><i class="fas fa-hand-holding-usd text-success"></i> 1. Thanh toán trực tiếp</h6>
+                        <p class="text-sm mb-3">Dùng cho thanh toán tại quầy bằng tiền mặt, thẻ hoặc chuyển khoản trực tiếp.</p>
+
+                        <h6 class="font-weight-bold"><i class="fas fa-mobile-alt text-danger"></i> 2. Thanh toán VNPay</h6>
+                        <p class="text-sm mb-3">Khách hàng quét mã QR hoặc thanh toán online qua cổng VNPay. Hệ thống sẽ tự động xác nhận sau khi thanh toán thành công.</p>
+
+                        <h6 class="font-weight-bold"><i class="fas fa-tag text-warning"></i> 3. Mã giảm giá</h6>
+                        <p class="text-sm mb-3">Nhập mã giảm giá để áp dụng ưu đãi cho booking. Số tiền thanh toán sẽ tự động được điều chỉnh.</p>
+
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-lightbulb"></i>
+                            <strong>Mẹo:</strong> Chọn booking trước để hệ thống tự động điền số tiền cần thanh toán.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick stats -->
+                <div class="card card-info">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-chart-line"></i> Thống kê nhanh</h3>
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="info-box mb-2">
+                            <span class="info-box-icon bg-success"><i class="fas fa-check-circle"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Thanh toán hôm nay</span>
+                                <span class="info-box-number" id="todayPayments">-</span>
+                            </div>
+                        </div>
+
+                        <div class="info-box mb-0">
+                            <span class="info-box-icon bg-warning"><i class="fas fa-clock"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Booking chờ thanh toán</span>
+                                <span class="info-box-number" id="pendingBookings">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment methods info -->
+                <div class="card card-secondary">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-chart-pie"></i> Phương thức phổ biến</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="progress-group">
+                            <span class="progress-text">💵 Tiền mặt</span>
+                            <span class="float-right"><b>45%</b></span>
+                            <div class="progress progress-sm">
+                                <div class="progress-bar bg-success" style="width: 45%"></div>
+                            </div>
+                        </div>
+                        <div class="progress-group">
+                            <span class="progress-text">🏦 Chuyển khoản</span>
+                            <span class="float-right"><b>30%</b></span>
+                            <div class="progress progress-sm">
+                                <div class="progress-bar bg-info" style="width: 30%"></div>
+                            </div>
+                        </div>
+                        <div class="progress-group mb-0">
+                            <span class="progress-text">📱 VNPay/Online</span>
+                            <span class="float-right"><b>25%</b></span>
+                            <div class="progress progress-sm">
+                                <div class="progress-bar bg-danger" style="width: 25%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
+
+<style>
+    .payment-method-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 3px solid #dee2e6;
+        min-height: 200px;
+    }
+
+        .payment-method-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+
+        .payment-method-card.active {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            box-shadow: 0 8px 24px rgba(40,167,69,0.3);
+        }
+
+            .payment-method-card.active[data-method="vnpay"] {
+                border-color: #dc3545;
+                box-shadow: 0 8px 24px rgba(220,53,69,0.3);
+            }
+
+    .select2-container--default .select2-selection--single {
+        height: 38px;
+        padding: 6px 12px;
+    }
+
+    #bookingDetailsContent table {
+        margin-bottom: 0;
+        width: 100%;
+    }
+
+        #bookingDetailsContent table td:first-child {
+            width: 40%;
+            font-weight: 500;
+        }
+
+        #bookingDetailsContent table td {
+            padding: 8px 12px;
+            border: none;
+            vertical-align: middle;
+        }
+
+        #bookingDetailsContent table tr {
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+            #bookingDetailsContent table tr:last-child {
+                border-bottom: none;
+            }
+
+    .table-responsive {
+        overflow-x: visible;
+    }
+</style>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2
+            if ($.fn.select2) {
+                $('.select2').select2({
+                    theme: 'bootstrap4',
+                    width: '100%'
+                });
+            }
+
+            // ===== BIẾN GLOBAL CHO MÃ GIẢM GIÁ =====
+            let currentDiscount = 0;
+            let originalAmountValue = 0;
+            // ========================================
+
+            // Payment method card selection
+            $('.payment-method-card').on('click', function() {
+                $('.payment-method-card').removeClass('active');
+                $(this).addClass('active');
+
+                const method = $(this).data('method');
+                const radio = $(this).find('input[type="radio"]');
+                radio.prop('checked', true);
+
+                if (method === 'direct') {
+                    $('#directPaymentDetails').slideDown(300);
+                    $('#vnpayPaymentDetails').slideUp(300);
+                    $('#directSubmitBtn').show();
+                    $('#vnpaySubmitBtn').hide();
+                    $('#paymentMethodSelect').prop('required', true);
+                    $('#transactionCodeInput').prop('required', false);
+                } else if (method === 'vnpay') {
+                    $('#directPaymentDetails').slideUp(300);
+                    $('#vnpayPaymentDetails').slideDown(300);
+                    $('#directSubmitBtn').hide();
+                    $('#vnpaySubmitBtn').show();
+                    $('#paymentMethodSelect').prop('required', false);
+                    $('#transactionCodeInput').prop('required', false);
+                }
+            });
+
+            // Set initial state
+            $('.payment-method-card[data-method="direct"]').addClass('active');
+
+            // Booking selection change
+            $('#bookingSelect').on('change', function() {
+                const bookingId = $(this).val();
+
+                // Reset mã giảm giá khi đổi booking
+                if (currentDiscount > 0) {
+                    $('#removePromoBtn').click();
+                }
+
+                if (bookingId) {
+                    const selectedText = $(this).find('option:selected').text();
+                    const parts = selectedText.split(' - ');
+
+                    if (parts.length >= 4) {
+                        const bookingNum = parts[0].trim();
+                        const customerName = parts[1].trim();
+                        const room = parts[2].trim();
+                        const priceText = parts[3].trim();
+                        const price = priceText.replace(/[^\d]/g, '');
+
+                        $('#bookingDetailsCard').slideDown();
+
+                        let html = `
+                            <table class="table table-sm mb-0">
+                                <tr>
+                                    <td width="40%"><strong>Booking:</strong></td>
+                                    <td>${bookingNum}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Khách hàng:</strong></td>
+                                    <td>${customerName}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Phòng:</strong></td>
+                                    <td>${room}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tổng tiền:</strong></td>
+                                    <td><h5 class="text-success mb-0">${formatCurrency(price)} VNĐ</h5></td>
+                                </tr>
+                            </table>
+                        `;
+
+                        $('#bookingDetailsContent').html(html);
+                        $('#amountInput').val(price);
+                        updateAmountPreview(price);
+                    }
+                } else {
+                    $('#bookingDetailsCard').slideUp();
+                    $('#amountInput').val('');
+                    updateAmountPreview(0);
+                }
+            });
+
+            // Amount input change
+            $('#amountInput').on('input', function() {
+                const amount = parseFloat($(this).val()) || 0;
+                updateAmountPreview(amount);
+            });
+
+            // ===== THÊM MỚI: XỬ LÝ MÃ GIẢM GIÁ =====
+            $('#applyPromoBtn').on('click', function() {
+                const promoCode = $('#promotionCodeInput').val().trim();
+                const bookingId = $('#bookingSelect').val();
+                const amount = parseFloat($('#amountInput').val()) || 0;
+
+                if (!promoCode) {
+                    showPromoMessage('Vui lòng nhập mã giảm giá!', 'error');
+                    return;
+                }
+
+                if (!bookingId || amount <= 0) {
+                    showPromoMessage('Vui lòng chọn booking và nhập số tiền trước!', 'error');
+                    return;
+                }
+
+                $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang kiểm tra...');
+
+                $.ajax({
+                    url: '@Url.Action("ValidatePromotion", "Payment")',
+                    type: 'POST',
+                    data: {
+                        promotionCode: promoCode,
+                        bookingId: bookingId,
+                        amount: amount
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            currentDiscount = response.discountAmount;
+                            originalAmountValue = amount;
+
+                            $('#promotionId').val(response.promotionId);
+                            $('#discountAmount').val(currentDiscount);
+                            $('#promotionCode').val(promoCode);
+
+                            $('#appliedPromoCode').text(promoCode);
+                            $('#discountValue').text(response.discountType === 'Percentage'
+                                ? response.discountValue + '% (- ' + formatCurrency(currentDiscount) + ' VNĐ)'
+                                : '- ' + formatCurrency(currentDiscount) + ' VNĐ');
+
+                            $('#originalAmount').text(formatCurrency(amount) + ' VNĐ');
+                            $('#discountAmountDisplay').text('- ' + formatCurrency(currentDiscount) + ' VNĐ');
+
+                            const finalPrice = amount - currentDiscount;
+                            $('#finalAmount').text(formatCurrency(finalPrice) + ' VNĐ');
+
+                            $('#amountInput').val(finalPrice);
+                            updateAmountPreview(finalPrice);
+
+                            $('#discountInfoCard').slideDown();
+                            $('#promotionCodeInput').prop('readonly', true);
+
+                            showPromoMessage('Áp dụng mã giảm giá thành công!', 'success');
+                        } else {
+                            showPromoMessage(response.message || 'Mã giảm giá không hợp lệ!', 'error');
+                        }
+                    },
+                    error: function() {
+                        showPromoMessage('Có lỗi xảy ra khi kiểm tra mã giảm giá!', 'error');
+                    },
+                    complete: function() {
+                        $('#applyPromoBtn').prop('disabled', false).html('<i class="fas fa-check"></i> Áp dụng');
+                    }
+                });
+            });
+
+            // Hủy mã giảm giá
+            $('#removePromoBtn').on('click', function() {
+                $('#amountInput').val(originalAmountValue);
+                updateAmountPreview(originalAmountValue);
+
+                $('#promotionId').val('');
+                $('#discountAmount').val('0');
+                $('#promotionCode').val('');
+                $('#promotionCodeInput').val('').prop('readonly', false);
+
+                $('#discountInfoCard').slideUp();
+
+                currentDiscount = 0;
+                originalAmountValue = 0;
+
+                showPromoMessage('Đã hủy mã giảm giá', 'info');
+            });
+
+            function showPromoMessage(message, type) {
+                const iconClass = type === 'success' ? 'fa-check-circle text-success'
+                                : type === 'error' ? 'fa-exclamation-circle text-danger'
+                                : 'fa-info-circle text-info';
+
+                $('#promoMessage').html(`<i class="fas ${iconClass}"></i> ${message}`);
+
+                setTimeout(function() {
+                    if (type !== 'success') {
+                        $('#promoMessage').html('');
+                    }
+                }, 5000);
+            }
+            // ===== KẾT THÚC XỬ LÝ MÃ GIẢM GIÁ =====
+
+            // VNPay submit button
+            $('#vnpaySubmitBtn').on('click', function(e) {
+                e.preventDefault();
+
+                if (!validateForm(true)) {
+                    return false;
+                }
+
+                const bookingId = $('#bookingSelect').val();
+                const amount = $('#amountInput').val();
+
+                if (!bookingId || !amount || amount <= 0) {
+                    alert('Vui lòng chọn booking và nhập số tiền hợp lệ!');
+                    return false;
+                }
+
+                $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang chuyển đến VNPay...');
+
+                setTimeout(function() {
+                    window.location.href = `@Url.Action("CreatePaymentVNPay", "Payment")?bookingId=${bookingId}&amount=${amount}`;
+                }, 500);
+            });
+
+            // Form validation
+            $('#paymentForm').on('submit', function(e) {
+                const paymentType = $('input[name="paymentType"]:checked').val();
+
+                if (paymentType === 'vnpay') {
+                    e.preventDefault();
+                    $('#vnpaySubmitBtn').click();
+                    return false;
+                }
+
+                if (!validateForm(false)) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                $('#directSubmitBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang xử lý...');
+            });
+
+            function validateForm(isVNPay) {
+                let isValid = true;
+                let errors = [];
+
+                if (!$('#bookingSelect').val()) {
+                    errors.push('Vui lòng chọn booking!');
+                    isValid = false;
+                }
+
+                const amount = parseFloat($('#amountInput').val()) || 0;
+                if (amount <= 0) {
+                    errors.push('Số tiền phải lớn hơn 0!');
+                    isValid = false;
+                }
+
+                if (!isVNPay && !$('#paymentMethodSelect').val()) {
+                    errors.push('Vui lòng chọn phương thức thanh toán!');
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    alert(errors.join('\n'));
+                }
+
+                return isValid;
+            }
+
+            function updateAmountPreview(amount) {
+                $('#amountPreview').text(formatCurrency(amount) + ' VNĐ');
+            }
+
+            function formatCurrency(value) {
+                return new Intl.NumberFormat('vi-VN').format(value);
+            }
+
+            // Load quick stats (dummy data)
+            $('#todayPayments').text('12 giao dịch');
+            $('#pendingBookings').text('5 booking');
+
+            // Trigger change if booking is pre-selected
+            if ($('#bookingSelect').val()) {
+                $('#bookingSelect').trigger('change');
+            }
+        });
+    </script>
 }

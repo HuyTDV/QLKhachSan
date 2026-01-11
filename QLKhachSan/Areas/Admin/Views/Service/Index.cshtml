@@ -9,7 +9,10 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="card-title">Danh sách Dịch vụ</h3>
+                    <h3 class="card-title">
+                        <i class="fas fa-concierge-bell"></i> Danh sách Dịch vụ
+                        <span class="badge badge-info ml-2" id="totalCount">@Model.Count() dịch vụ</span>
+                    </h3>
                     <a asp-action="Create" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Thêm mới
                     </a>
@@ -18,36 +21,148 @@
                     @if (TempData["Success"] != null)
                     {
                         <div class="alert alert-success alert-dismissible fade show">
-                            @TempData["Success"]
+                            <i class="fas fa-check-circle"></i> @TempData["Success"]
                             <button type="button" class="close" data-dismiss="alert">&times;</button>
                         </div>
                     }
 
-                    <div class="row">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        </div>
+                    }
+
+                    <!-- Search and Filter Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-5">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                </div>
+                                <input type="text" id="searchService" class="form-control" placeholder="Tìm kiếm theo tên dịch vụ...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="filterPrice" class="form-control">
+                                <option value="">Tất cả mức giá</option>
+                                <option value="low">Dưới 200.000đ</option>
+                                <option value="mid">200.000đ - 500.000đ</option>
+                                <option value="high">Trên 500.000đ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select id="sortService" class="form-control">
+                                <option value="name-asc">Tên A-Z</option>
+                                <option value="name-desc">Tên Z-A</option>
+                                <option value="price-asc">Giá tăng dần</option>
+                                <option value="price-desc">Giá giảm dần</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button id="resetFilter" class="btn btn-secondary btn-block">
+                                <i class="fas fa-redo"></i> Đặt lại
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Stats Summary -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <div class="info-box bg-info">
+                                <span class="info-box-icon"><i class="fas fa-list"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Tổng dịch vụ</span>
+                                    <span class="info-box-number" id="visibleCount">@Model.Count()</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box bg-success">
+                                <span class="info-box-icon"><i class="fas fa-dollar-sign"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Giá thấp nhất</span>
+                                    <span class="info-box-number" id="minPrice">
+                                        @(Model.Any() ? Model.Min(s => s.Price)?.ToString("N0") : "0") đ
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box bg-warning">
+                                <span class="info-box-icon"><i class="fas fa-dollar-sign"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Giá cao nhất</span>
+                                    <span class="info-box-number" id="maxPrice">
+                                        @(Model.Any() ? Model.Max(s => s.Price)?.ToString("N0") : "0") đ
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box bg-danger">
+                                <span class="info-box-icon"><i class="fas fa-calculator"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Giá trung bình</span>
+                                    <span class="info-box-number" id="avgPrice">
+                                        @(Model.Any() ? Model.Average(s => s.Price ?? 0).ToString("N0") : "0") đ
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" id="serviceContainer">
                         @foreach (var item in Model)
                         {
-                            <div class="col-md-4 col-sm-6">
-                                <div class="card card-outline card-primary">
+                            var priceClass = item.Price < 200000 ? "success" :
+                            item.Price < 500000 ? "warning" : "danger";
+                            var priceLabel = item.Price < 200000 ? "Tiết kiệm" :
+                            item.Price < 500000 ? "Trung bình" : "Cao cấp";
+
+                            <div class="col-lg-4 col-md-6 col-sm-12 mb-4 service-card"
+                                 data-name="@item.ServiceName.ToLower()"
+                                 data-price="@item.Price"
+                                 data-service-id="@item.ServiceId">
+                                <div class="card card-outline card-primary h-100">
                                     <div class="card-header">
-                                        <h5 class="card-title mb-0">
-                                            <i class="fas fa-concierge-bell text-primary"></i>
-                                            <strong>@item.ServiceName</strong>
-                                        </h5>
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <h5 class="card-title mb-0">
+                                                <i class="fas fa-concierge-bell text-primary"></i>
+                                                <strong>@item.ServiceName</strong>
+                                            </h5>
+                                            <span class="badge badge-@priceClass">@priceLabel</span>
+                                        </div>
                                     </div>
-                                    <div class="card-body">
-                                        <p class="text-muted mb-3">@item.Description</p>
-                                        <h4 class="text-success mb-3">
+                                    <div class="card-body d-flex flex-column">
+                                        <p class="text-muted mb-3 service-description">
+                                            @if (!string.IsNullOrEmpty(item.Description))
+                                            {
+                                                @item.Description
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted"><i>Chưa có mô tả</i></span>
+                                            }
+                                        </p>
+                                        <h4 class="text-success mb-3 mt-auto">
                                             <i class="fas fa-money-bill-wave"></i>
-                                            @item.Price?.ToString("N0") VNĐ
+                                            <strong>@item.Price?.ToString("N0") VNĐ</strong>
                                         </h4>
                                         <div class="btn-group btn-block">
-                                            <a asp-action="Details" asp-route-id="@item.ServiceId" class="btn btn-info btn-sm">
+                                            <a asp-action="Details" asp-route-id="@item.ServiceId"
+                                               class="btn btn-info btn-sm" title="Xem chi tiết">
                                                 <i class="fas fa-eye"></i> Chi tiết
                                             </a>
-                                            <a asp-action="Edit" asp-route-id="@item.ServiceId" class="btn btn-warning btn-sm">
+                                            <a asp-action="Edit" asp-route-id="@item.ServiceId"
+                                               class="btn btn-warning btn-sm" title="Chỉnh sửa">
                                                 <i class="fas fa-edit"></i> Sửa
                                             </a>
-                                            <a asp-action="Delete" asp-route-id="@item.ServiceId" class="btn btn-danger btn-sm">
+                                            <a asp-action="Delete" asp-route-id="@item.ServiceId"
+                                               class="btn btn-danger btn-sm" title="Xóa">
                                                 <i class="fas fa-trash"></i> Xóa
                                             </a>
                                         </div>
@@ -60,12 +175,223 @@
                     @if (!Model.Any())
                     {
                         <div class="alert alert-info text-center">
-                            <i class="fas fa-info-circle"></i>
-                            Chưa có dịch vụ nào. <a asp-action="Create">Thêm dịch vụ đầu tiên</a>
+                            <i class="fas fa-info-circle fa-3x mb-3"></i>
+                            <h5>Chưa có dịch vụ nào</h5>
+                            <p>Hãy thêm dịch vụ đầu tiên để bắt đầu quản lý</p>
+                            <a asp-action="Create" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Thêm dịch vụ
+                            </a>
                         </div>
                     }
+
+                    <div id="noResults" class="alert alert-warning text-center" style="display: none;">
+                        <i class="fas fa-search fa-2x mb-2"></i>
+                        <h5>Không tìm thấy dịch vụ nào phù hợp</h5>
+                        <p class="mb-0">Thử thay đổi điều kiện tìm kiếm hoặc bộ lọc</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Styles {
+    <style>
+        .service-description {
+            height: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            line-height: 1.5;
+        }
+
+        .service-card {
+            transition: transform 0.2s;
+        }
+
+            .service-card:hover {
+                transform: translateY(-5px);
+            }
+
+        .card-outline {
+            border-width: 2px;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.35em 0.65em;
+        }
+
+        .btn-group {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card {
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            transition: box-shadow 0.3s ease;
+        }
+
+            .card:hover {
+                box-shadow: 0 0 20px rgba(0,0,0,0.15);
+            }
+
+        .info-box {
+            min-height: 80px;
+        }
+
+        .info-box-number {
+            font-size: 1.2rem;
+        }
+
+        #sortService option {
+            padding: 5px;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Search functionality
+            $('#searchService').on('keyup', function() {
+                filterServices();
+            });
+
+            // Price filter
+            $('#filterPrice').on('change', function() {
+                filterServices();
+            });
+
+            // Sort functionality - FIX: Parse price correctly
+            $('#sortService').on('change', function() {
+                const sortValue = $(this).val();
+                console.log('Sorting by:', sortValue);
+                sortServices(sortValue);
+            });
+
+            // Reset filter
+            $('#resetFilter').on('click', function() {
+                $('#searchService').val('');
+                $('#filterPrice').val('');
+                $('#sortService').val('name-asc');
+                $('.service-card').show();
+                $('#noResults').hide();
+                updateStats();
+                sortServices('name-asc');
+            });
+
+            function filterServices() {
+                const searchText = $('#searchService').val().toLowerCase();
+                const priceFilter = $('#filterPrice').val();
+                let visibleCount = 0;
+
+                $('.service-card').each(function() {
+                    const name = $(this).data('name');
+                    const price = parseFloat($(this).data('price'));
+                    let showCard = true;
+
+                    // Search filter
+                    if (searchText && !name.includes(searchText)) {
+                        showCard = false;
+                    }
+
+                    // Price filter
+                    if (priceFilter) {
+                        if (priceFilter === 'low' && price >= 200000) showCard = false;
+                        if (priceFilter === 'mid' && (price < 200000 || price > 500000)) showCard = false;
+                        if (priceFilter === 'high' && price <= 500000) showCard = false;
+                    }
+
+                    if (showCard) {
+                        $(this).show();
+                        visibleCount++;
+                    } else {
+                        $(this).hide();
+                    }
+                });
+
+                // Update visible count
+                $('#visibleCount').text(visibleCount);
+
+                // Show/hide no results message
+                if (visibleCount === 0) {
+                    $('#noResults').show();
+                } else {
+                    $('#noResults').hide();
+                }
+
+                updateStats();
+            }
+
+            function sortServices(sortType) {
+                const container = $('#serviceContainer');
+                const cards = container.children('.service-card').get();
+
+                console.log('Total cards:', cards.length);
+
+                cards.sort(function(a, b) {
+                    const aName = $(a).data('name');
+                    const bName = $(b).data('name');
+                    // FIX: Parse price as float, handle null/undefined
+                    const aPrice = parseFloat($(a).data('price')) || 0;
+                    const bPrice = parseFloat($(b).data('price')) || 0;
+
+                    console.log('Comparing:', aName, aPrice, 'vs', bName, bPrice);
+
+                    switch(sortType) {
+                        case 'name-asc':
+                            return aName.localeCompare(bName, 'vi');
+                        case 'name-desc':
+                            return bName.localeCompare(aName, 'vi');
+                        case 'price-asc':
+                            console.log('Price comparison (asc):', aPrice - bPrice);
+                            return aPrice - bPrice;
+                        case 'price-desc':
+                            console.log('Price comparison (desc):', bPrice - aPrice);
+                            return bPrice - aPrice;
+                        default:
+                            return 0;
+                    }
+                });
+
+                // Re-append sorted cards
+                $.each(cards, function(idx, card) {
+                    container.append(card);
+                });
+
+                console.log('Sort completed');
+            }
+
+            function updateStats() {
+                const visibleCards = $('.service-card:visible');
+                const prices = [];
+
+                visibleCards.each(function() {
+                    const price = parseFloat($(this).data('price'));
+                    if (!isNaN(price)) {
+                        prices.push(price);
+                    }
+                });
+
+                if (prices.length > 0) {
+                    const minPrice = Math.min(...prices);
+                    const maxPrice = Math.max(...prices);
+                    const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+
+                    $('#minPrice').text(minPrice.toLocaleString('vi-VN') + ' đ');
+                    $('#maxPrice').text(maxPrice.toLocaleString('vi-VN') + ' đ');
+                    $('#avgPrice').text(Math.round(avgPrice).toLocaleString('vi-VN') + ' đ');
+                } else {
+                    $('#minPrice').text('0 đ');
+                    $('#maxPrice').text('0 đ');
+                    $('#avgPrice').text('0 đ');
+                }
+            }
+
+            // Initial sort
+            sortServices('name-asc');
+        });
+    </script>
+}

@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using QLKhachSan.Models; // Đảm bảo namespace này đúng với project của bạn
+using QLKhachSan.Models;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace QLKhachSan.Areas.Admin.Controllers
 {
@@ -14,14 +15,67 @@ namespace QLKhachSan.Areas.Admin.Controllers
         {
             _context = context;
         }
-
-        // GET: Admin/Room
-        public async Task<IActionResult> Index()
+        
+        // GET: Admin/Room - CÓ PHÂN TRANG
+        public async Task<IActionResult> Index(
+            int? branchId,
+            string status,
+            string roomType,
+            string searchTerm,
+            int pageNumber = 1,
+            int pageSize = 10)
         {
-            var rooms = await _context.Rooms
+            // Validate pageSize
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            var query = _context.Rooms
                 .Include(r => r.Branch)
+                .AsQueryable();
+
+            // Apply filters
+            if (branchId.HasValue)
+                query = query.Where(r => r.BranchId == branchId.Value);
+
+            if (!string.IsNullOrEmpty(status))
+                query = query.Where(r => r.Status == status);
+
+            if (!string.IsNullOrEmpty(roomType))
+                query = query.Where(r => r.RoomType != null && r.RoomType.Contains(roomType));
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(r =>
+                    (r.RoomNumber != null && r.RoomNumber.Contains(searchTerm)) ||
+                    (r.RoomType != null && r.RoomType.Contains(searchTerm)) ||
+                    (r.Amenities != null && r.Amenities.Contains(searchTerm)));
+            }
+
+            // Get total count before pagination
+            var totalItems = await query.CountAsync();
+
+            // Apply sorting and pagination
+            var rooms = await query
                 .OrderByDescending(r => r.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            // Calculate pagination info
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            // Pass data to view
+            ViewBag.Branches = await _context.HotelBranches.ToListAsync();
+            ViewBag.BranchId = branchId;
+            ViewBag.Status = status;
+            ViewBag.RoomType = roomType;
+            ViewBag.SearchTerm = searchTerm;
+
+            // Pagination info
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
 
             return View(rooms);
         }
@@ -73,7 +127,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
                 _context.Add(room);
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = "Thêm phòng thành công!";
+                TempData["Success"] = "Thêm phòng thành công!";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -117,7 +171,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
                 {
                     _context.Update(room);
                     await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = "Cập nhật phòng thành công!";
+                    TempData["Success"] = "Cập nhật phòng thành công!";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -168,7 +222,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
             {
                 _context.Rooms.Remove(room);
                 await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Xóa phòng thành công!";
+                TempData["Success"] = "Xóa phòng thành công!";
             }
 
             return RedirectToAction(nameof(Index));

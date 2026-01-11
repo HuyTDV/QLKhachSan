@@ -1,63 +1,194 @@
 ﻿@model IEnumerable<QLKhachSan.Models.BlogPost>
-
+@using QLKhachSan.Models
 @{
     ViewData["Title"] = "Quản lý Bài viết";
+    var authors = ViewBag.Authors as List<User> ?? new List<User>();
+
+    // Pagination variables
+    var currentPage = ViewBag.CurrentPage ?? 1;
+    var pageSize = ViewBag.PageSize ?? 10;
+    var totalItems = ViewBag.TotalItems ?? 0;
+    var totalPages = ViewBag.TotalPages ?? 1;
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="card-title">Danh sách Bài viết</h3>
-                    <a asp-action="Create" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Thêm mới
-                    </a>
-                </div>
-                <div class="card-body">
-                    @if (TempData["Success"] != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show">
-                            @TempData["Success"]
-                            <button type="button" class="close" data-dismiss="alert">&times;</button>
-                        </div>
-                    }
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Quản lý Bài viết</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                    <li class="breadcrumb-item active">Bài viết</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
 
-                    <table class="table table-bordered table-hover">
-                        <thead class="thead-light">
+<section class="content">
+    <div class="container-fluid">
+        <!-- FILTER CARD -->
+        <div class="card card-outline card-primary mb-3">
+            <div class="card-body p-2">
+                <form method="get" asp-action="Index" class="form-inline">
+                    <div class="form-group mr-2">
+                        <label class="mr-2">Tác giả:</label>
+                        <select name="authorId" class="form-control form-control-sm" style="width: 200px;">
+                            <option value="">-- Tất cả tác giả --</option>
+                            @foreach (var author in authors)
+                            {
+                                <option value="@author.UserId" selected="@(ViewBag.AuthorId == author.UserId)">@author.FullName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group mr-2">
+                        <label class="mr-2">Tìm kiếm:</label>
+                        <input type="text" name="searchTerm" class="form-control form-control-sm" placeholder="Tiêu đề, nội dung..." value="@ViewBag.SearchTerm" style="width: 200px;" />
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm mr-2"><i class="fas fa-search"></i> Lọc</button>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary btn-sm"><i class="fas fa-redo"></i> Reset</a>
+                </form>
+            </div>
+        </div>
+
+        <!-- DANH SÁCH BÀI VIẾT -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-newspaper"></i> Danh sách Bài viết
+                    <span class="badge badge-info ml-2">Trang @currentPage/@totalPages</span>
+                </h3>
+                <div class="card-tools">
+                    <span class="badge badge-primary mr-2">Tổng: @totalItems bài viết</span>
+                    <a asp-action="Create" class="btn btn-success btn-sm"><i class="fas fa-plus"></i> Thêm bài viết</a>
+                </div>
+            </div>
+            <div class="card-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <i class="fas fa-check-circle"></i> @TempData["Success"]
+                    </div>
+                }
+
+                <!-- TOOLBAR PHÂN TRANG -->
+                <div class="row mb-3">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="d-flex align-items-center">
+                            <label class="mb-0 mr-2">Hiển thị:</label>
+                            <form method="get" asp-action="Index">
+                                <input type="hidden" name="authorId" value="@ViewBag.AuthorId" />
+                                <input type="hidden" name="searchTerm" value="@ViewBag.SearchTerm" />
+                                <select name="pageSize" class="form-control form-control-sm" style="width: 80px;" onchange="this.form.submit()">
+                                    <option value="10" selected="@(pageSize == 10)">10</option>
+                                    <option value="25" selected="@(pageSize == 25)">25</option>
+                                    <option value="50" selected="@(pageSize == 50)">50</option>
+                                    <option value="100" selected="@(pageSize == 100)">100</option>
+                                </select>
+                            </form>
+                            <span class="ml-2 text-muted">
+                                Hiển thị @((currentPage - 1) * pageSize + 1) - @(Math.Min(currentPage * pageSize, totalItems)) / @totalItems
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover">
+                        <thead class="thead-dark">
                             <tr>
-                                <th>ID</th>
                                 <th>Tiêu đề</th>
                                 <th>Tác giả</th>
-                                <th>Ngày tạo</th>
+                                <th>Nội dung (trích)</th>
+                                <th>Ngày đăng</th>
                                 <th>Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var item in Model)
+                            @if (Model != null && Model.Any())
+                            {
+                                foreach (var post in Model)
+                                {
+                                    <tr>
+                                        <td><strong>@post.Title</strong></td>
+                                        <td>@(post.Author?.FullName ?? "N/A")</td>
+                                        <td>@(post.Content?.Length > 100 ? post.Content.Substring(0, 100) + "..." : post.Content)</td>
+                                        <td>@(post.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a asp-action="Details" asp-route-id="@post.PostId" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
+                                                <a asp-action="Edit" asp-route-id="@post.PostId" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
+                                                <a asp-action="Delete" asp-route-id="@post.PostId" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
                             {
                                 <tr>
-                                    <td>@item.PostId</td>
-                                    <td>@item.Title</td>
-                                    <td>@item.Author?.FullName</td>
-                                    <td>@item.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td>
-                                        <a asp-action="Details" asp-route-id="@item.PostId" class="btn btn-info btn-sm">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a asp-action="Edit" asp-route-id="@item.PostId" class="btn btn-warning btn-sm">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a asp-action="Delete" asp-route-id="@item.PostId" class="btn btn-danger btn-sm">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                        <p class="mb-0">Không tìm thấy bài viết nào</p>
                                     </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
                 </div>
+
+                <!-- PAGINATION -->
+                @if (totalItems > 0)
+                {
+                    <div class="row mt-3">
+                        <div class="col-12 d-flex justify-content-center">
+                            <nav>
+                                <ul class="pagination">
+                                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { pageNumber = 1, pageSize, authorId = ViewBag.AuthorId, searchTerm = ViewBag.SearchTerm })">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { pageNumber = currentPage - 1, pageSize, authorId = ViewBag.AuthorId, searchTerm = ViewBag.SearchTerm })">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+                                    @{
+                                        var startPage = Math.Max(1, currentPage - 2);
+                                        var endPage = Math.Min(totalPages, currentPage + 2);
+                                        for (int i = startPage; i <= endPage; i++)
+                                        {
+                                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                                <a class="page-link" href="@Url.Action("Index", new { pageNumber = i, pageSize, authorId = ViewBag.AuthorId, searchTerm = ViewBag.SearchTerm })">@i</a>
+                                            </li>
+                                        }
+                                    }
+                                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { pageNumber = currentPage + 1, pageSize, authorId = ViewBag.AuthorId, searchTerm = ViewBag.SearchTerm })">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { pageNumber = totalPages, pageSize, authorId = ViewBag.AuthorId, searchTerm = ViewBag.SearchTerm })">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
     </div>
-</div>
+</section>
+
+@section Scripts {
+    <script>
+        setTimeout(function() { $('.alert-success').fadeOut('slow'); }, 3000);
+    </script>
+}

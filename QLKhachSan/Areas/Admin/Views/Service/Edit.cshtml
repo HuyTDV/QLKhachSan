@@ -7,17 +7,26 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-8 offset-md-2">
-            <div class="card">
+            <div class="card card-warning">
                 <div class="card-header">
-                    <h3 class="card-title">Sửa thông tin Dịch vụ</h3>
+                    <h3 class="card-title">
+                        <i class="fas fa-edit"></i> Sửa thông tin Dịch vụ
+                    </h3>
                 </div>
-                <form asp-action="Edit" method="post">
+                <form asp-action="Edit" method="post" id="editServiceForm">
                     <div class="card-body">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                         <input type="hidden" asp-for="ServiceId" />
 
+                        <!-- Service ID Display -->
+                        <div class="alert alert-secondary">
+                            <strong>Mã dịch vụ:</strong> #@Model.ServiceId
+                        </div>
+
                         <div class="form-group">
-                            <label asp-for="ServiceName" class="control-label">Tên dịch vụ <span class="text-danger">*</span></label>
+                            <label asp-for="ServiceName" class="control-label">
+                                Tên dịch vụ <span class="text-danger">*</span>
+                            </label>
                             <div class="input-group">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text">
@@ -31,33 +40,104 @@
 
                         <div class="form-group">
                             <label asp-for="Description" class="control-label">Mô tả dịch vụ</label>
-                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                            <textarea asp-for="Description" class="form-control" rows="4"
+                                      maxlength="200"></textarea>
+                            <small class="form-text text-muted">
+                                <span id="charCount">@(Model.Description?.Length ?? 0)</span>/200 ký tự
+                            </small>
                             <span asp-validation-for="Description" class="text-danger"></span>
                         </div>
 
                         <div class="form-group">
-                            <label asp-for="Price" class="control-label">Giá dịch vụ (VNĐ) <span class="text-danger">*</span></label>
+                            <label asp-for="Price" class="control-label">
+                                Giá dịch vụ (VNĐ) <span class="text-danger">*</span>
+                            </label>
                             <div class="input-group">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="fas fa-money-bill-wave"></i>
                                     </span>
                                 </div>
-                                <input asp-for="Price" type="number" step="1000" min="0" class="form-control" required />
+                                <input asp-for="Price" type="number" step="1000" min="0"
+                                       class="form-control" required />
                                 <div class="input-group-append">
                                     <span class="input-group-text">VNĐ</span>
                                 </div>
                             </div>
+                            <small class="form-text text-muted">
+                                Giá hiển thị: <strong id="pricePreview">@Model.Price?.ToString("N0") VNĐ</strong>
+                            </small>
                             <span asp-validation-for="Price" class="text-danger"></span>
+                        </div>
+
+                        <!-- Price Change Comparison -->
+                        <div class="card card-outline card-info">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-chart-line"></i> So sánh giá
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="text-muted mb-1">Giá cũ:</p>
+                                        <h4 id="oldPrice" class="text-secondary">
+                                            @Model.Price?.ToString("N0") VNĐ
+                                        </h4>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="text-muted mb-1">Giá mới:</p>
+                                        <h4 id="newPrice" class="text-success">
+                                            @Model.Price?.ToString("N0") VNĐ
+                                        </h4>
+                                    </div>
+                                </div>
+                                <div id="priceChange" class="mt-2">
+                                    <span class="badge badge-secondary">Không thay đổi</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preview Card -->
+                        <div class="card card-outline card-primary">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-eye"></i> Xem trước sau khi cập nhật
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <h5 id="previewName" class="text-primary">
+                                    <i class="fas fa-concierge-bell"></i> <span>@Model.ServiceName</span>
+                                </h5>
+                                <p id="previewDesc" class="text-muted">
+                                    @if (!string.IsNullOrEmpty(Model.Description))
+                                    {
+                                        @Model.Description
+                                    }
+                                    else
+                                    {
+                                        <span>Chưa có mô tả</span>
+                                    }
+                                </p>
+                                <h4 id="previewPrice" class="text-success">
+                                    <i class="fas fa-money-bill-wave"></i> @Model.Price?.ToString("N0") VNĐ
+                                </h4>
+                            </div>
                         </div>
                     </div>
 
                     <div class="card-footer">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-warning">
                             <i class="fas fa-save"></i> Cập nhật
                         </button>
-                        <a asp-action="Index" class="btn btn-secondary">
+                        <button type="button" id="resetBtn" class="btn btn-secondary">
+                            <i class="fas fa-undo"></i> Hoàn tác
+                        </button>
+                        <a asp-action="Index" class="btn btn-default">
                             <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                        <a asp-action="Details" asp-route-id="@Model.ServiceId" class="btn btn-info float-right">
+                            <i class="fas fa-eye"></i> Xem chi tiết
                         </a>
                     </div>
                 </form>
@@ -70,4 +150,98 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        $(document).ready(function() {
+            const originalPrice = @Model.Price;
+            const originalName = '@Model.ServiceName';
+            const originalDesc = '@Html.Raw(Model.Description ?? "")';
+
+            // Character count
+            $('#Description').on('input', function() {
+                const length = $(this).val().length;
+                $('#charCount').text(length);
+                updatePreview();
+            });
+
+            // Price update and comparison
+            $('#Price').on('input', function() {
+                const newPriceValue = parseInt($(this).val()) || 0;
+                $('#pricePreview').text(newPriceValue.toLocaleString('vi-VN') + ' VNĐ');
+                $('#newPrice').text(newPriceValue.toLocaleString('vi-VN') + ' VNĐ');
+
+                // Calculate change
+                const diff = newPriceValue - originalPrice;
+                const percentChange = originalPrice > 0 ? ((diff / originalPrice) * 100).toFixed(1) : 0;
+
+                let changeHtml = '';
+                if (diff > 0) {
+                    changeHtml = `<span class="badge badge-danger">
+                        <i class="fas fa-arrow-up"></i> Tăng ${diff.toLocaleString('vi-VN')} VNĐ (+${percentChange}%)
+                    </span>`;
+                } else if (diff < 0) {
+                    changeHtml = `<span class="badge badge-success">
+                        <i class="fas fa-arrow-down"></i> Giảm ${Math.abs(diff).toLocaleString('vi-VN')} VNĐ (${percentChange}%)
+                    </span>`;
+                } else {
+                    changeHtml = '<span class="badge badge-secondary">Không thay đổi</span>';
+                }
+
+                $('#priceChange').html(changeHtml);
+                updatePreview();
+            });
+
+            // Name update
+            $('#ServiceName').on('input', function() {
+                updatePreview();
+            });
+
+            // Update preview
+            function updatePreview() {
+                const name = $('#ServiceName').val() || 'Tên dịch vụ';
+                const desc = $('#Description').val() || 'Chưa có mô tả';
+                const price = parseInt($('#Price').val()) || 0;
+
+                $('#previewName span').text(name);
+                $('#previewDesc').text(desc);
+                $('#previewPrice').html('<i class="fas fa-money-bill-wave"></i> ' +
+                                       price.toLocaleString('vi-VN') + ' VNĐ');
+            }
+
+            // Reset button
+            $('#resetBtn').on('click', function() {
+                $('#ServiceName').val(originalName);
+                $('#Description').val(originalDesc);
+                $('#Price').val(originalPrice);
+
+                $('#charCount').text(originalDesc.length);
+                $('#pricePreview').text(originalPrice.toLocaleString('vi-VN') + ' VNĐ');
+                $('#newPrice').text(originalPrice.toLocaleString('vi-VN') + ' VNĐ');
+                $('#priceChange').html('<span class="badge badge-secondary">Không thay đổi</span>');
+
+                updatePreview();
+            });
+
+            // Form validation
+            $('#editServiceForm').on('submit', function(e) {
+                const price = parseInt($('#Price').val());
+                if (price <= 0) {
+                    e.preventDefault();
+                    alert('Giá dịch vụ phải lớn hơn 0!');
+                    $('#Price').focus();
+                    return false;
+                }
+
+                // Confirm if price changed significantly
+                const diff = Math.abs(price - originalPrice);
+                const percentChange = originalPrice > 0 ? (diff / originalPrice) * 100 : 0;
+
+                if (percentChange > 20) {
+                    if (!confirm(`Giá thay đổi ${percentChange.toFixed(1)}%. Bạn có chắc chắn muốn cập nhật?`)) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+            });
+        });
+    </script>
 }

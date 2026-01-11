@@ -9,51 +9,203 @@
         <div class="col-md-8 offset-md-2">
             <div class="card border-danger">
                 <div class="card-header bg-danger text-white">
-                    <h3 class="card-title">Xác nhận xóa Dịch vụ</h3>
+                    <h3 class="card-title">
+                        <i class="fas fa-exclamation-triangle"></i> Xác nhận xóa Dịch vụ
+                    </h3>
                 </div>
                 <div class="card-body">
-                    <h4 class="text-danger">Bạn có chắc chắn muốn xóa dịch vụ này?</h4>
+                    <!-- Warning Message -->
+                    <div class="alert alert-danger">
+                        <h4 class="alert-heading">
+                            <i class="fas fa-exclamation-circle"></i> Cảnh báo!
+                        </h4>
+                        <p class="mb-0">
+                            Bạn có chắc chắn muốn xóa dịch vụ này?
+                            <strong>Hành động này không thể hoàn tác!</strong>
+                        </p>
+                    </div>
+
                     <hr />
 
-                    <div class="card card-outline card-primary mb-3">
+                    <!-- Service Information Card -->
+                    <div class="card card-outline card-danger mb-3">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle"></i> Thông tin dịch vụ sẽ bị xóa
+                            </h5>
+                        </div>
                         <div class="card-body">
                             <dl class="row mb-0">
-                                <dt class="col-sm-4">ID</dt>
-                                <dd class="col-sm-8">@Model.ServiceId</dd>
+                                <dt class="col-sm-4">
+                                    <i class="fas fa-hashtag"></i> Mã dịch vụ
+                                </dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge badge-secondary">#@Model.ServiceId</span>
+                                </dd>
 
-                                <dt class="col-sm-4">Tên dịch vụ</dt>
+                                <dt class="col-sm-4">
+                                    <i class="fas fa-concierge-bell"></i> Tên dịch vụ
+                                </dt>
                                 <dd class="col-sm-8">
                                     <h5 class="mb-0">
-                                        <i class="fas fa-concierge-bell text-primary"></i>
-                                        <strong>@Model.ServiceName</strong>
+                                        <strong class="text-danger">@Model.ServiceName</strong>
                                     </h5>
                                 </dd>
 
-                                <dt class="col-sm-4">Mô tả</dt>
-                                <dd class="col-sm-8">@Model.Description</dd>
+                                <dt class="col-sm-4">
+                                    <i class="fas fa-align-left"></i> Mô tả
+                                </dt>
+                                <dd class="col-sm-8">
+                                    @if (!string.IsNullOrEmpty(Model.Description))
+                                    {
+                                        @Model.Description
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted"><em>Chưa có mô tả</em></span>
+                                    }
+                                </dd>
 
-                                <dt class="col-sm-4">Giá dịch vụ</dt>
+                                <dt class="col-sm-4">
+                                    <i class="fas fa-money-bill-wave"></i> Giá dịch vụ
+                                </dt>
                                 <dd class="col-sm-8">
                                     <h4 class="text-success mb-0">
-                                        <i class="fas fa-money-bill-wave"></i>
-                                        @Model.Price?.ToString("N0") VNĐ
+                                        <strong>@Model.Price?.ToString("N0") VNĐ</strong>
                                     </h4>
                                 </dd>
                             </dl>
                         </div>
                     </div>
 
-                    <form asp-action="Delete" method="post">
+                    <!-- Impact Warning -->
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle"></i> Lưu ý trước khi xóa:
+                        </h5>
+                        <ul class="mb-0 pl-3">
+                            <li>Dữ liệu dịch vụ sẽ bị xóa vĩnh viễn khỏi hệ thống</li>
+                            <li>Các đặt phòng đã sử dụng dịch vụ này có thể bị ảnh hưởng</li>
+                            <li>Không thể khôi phục sau khi xóa</li>
+                            <li>Hãy chắc chắn rằng dịch vụ này không còn được sử dụng</li>
+                        </ul>
+                    </div>
+
+                    <!-- Confirmation Checkbox -->
+                    <div class="form-group">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="confirmDelete">
+                            <label class="custom-control-label" for="confirmDelete">
+                                <strong>Tôi hiểu và chắc chắn muốn xóa dịch vụ này</strong>
+                            </label>
+                        </div>
+                    </div>
+
+                    <form asp-action="Delete" method="post" id="deleteForm">
                         <input type="hidden" asp-for="ServiceId" />
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash"></i> Xóa
-                        </button>
-                        <a asp-action="Index" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Hủy
-                        </a>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Hủy bỏ
+                            </a>
+
+                            <button type="submit" id="deleteBtn" class="btn btn-danger" disabled>
+                                <i class="fas fa-trash-alt"></i> Xác nhận xóa
+                            </button>
+                        </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- Alternative Actions -->
+            <div class="card card-secondary mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb"></i> Bạn có thể thử các hành động khác
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p>Thay vì xóa, bạn có thể:</p>
+                    <div class="btn-group-vertical btn-block">
+                        <a asp-action="Edit" asp-route-id="@Model.ServiceId" class="btn btn-warning mb-2">
+                            <i class="fas fa-edit"></i> Chỉnh sửa thông tin dịch vụ
+                        </a>
+                        <a asp-action="Details" asp-route-id="@Model.ServiceId" class="btn btn-info">
+                            <i class="fas fa-eye"></i> Xem lại chi tiết dịch vụ
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Styles {
+    <style>
+        /* Custom styles for delete page */
+        .card-outline {
+            border-width: 2px;
+        }
+
+        .custom-control-label {
+            cursor: pointer;
+        }
+
+        #deleteBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Enable delete button only when checkbox is checked
+            $('#confirmDelete').on('change', function() {
+                if ($(this).is(':checked')) {
+                    $('#deleteBtn').prop('disabled', false);
+                } else {
+                    $('#deleteBtn').prop('disabled', true);
+                }
+            });
+
+            // Final confirmation before delete
+            $('#deleteForm').on('submit', function(e) {
+                if (!$('#confirmDelete').is(':checked')) {
+                    e.preventDefault();
+                    alert('Vui lòng xác nhận bằng cách đánh dấu vào ô checkbox!');
+                    return false;
+                }
+
+                const serviceName = '@Model.ServiceName';
+                const confirmed = confirm(
+                    `BẠN CHẮC CHẮN MUỐN XÓA DỊCH VỤ "${serviceName}"?\n\n` +
+                    'Hành động này không thể hoàn tác!\n\n' +
+                    'Nhấn OK để tiếp tục, Cancel để hủy bỏ.'
+                );
+
+                if (!confirmed) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                // Show loading state
+                $('#deleteBtn').prop('disabled', true)
+                              .html('<i class="fas fa-spinner fa-spin"></i> Đang xóa...');
+            });
+
+            // Warn before leaving page
+            let formSubmitted = false;
+            $('#deleteForm').on('submit', function() {
+                formSubmitted = true;
+            });
+
+            $(window).on('beforeunload', function(e) {
+                if ($('#confirmDelete').is(':checked') && !formSubmitted) {
+                    return 'Bạn đã xác nhận xóa nhưng chưa hoàn tất. Bạn có chắc muốn rời khỏi trang?';
+                }
+            });
+        });
+    </script>
+}

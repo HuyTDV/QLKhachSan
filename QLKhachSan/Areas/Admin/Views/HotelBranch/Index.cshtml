@@ -1,10 +1,16 @@
 ﻿@model IEnumerable<QLKhachSan.Models.HotelBranch>
-
+@using QLKhachSan.Models
 @{
     ViewData["Title"] = "Quản lý Chi nhánh";
+    var hotels = ViewBag.Hotels as List<Hotel> ?? new List<Hotel>();
+
+    // Pagination variables
+    var currentPage = ViewBag.CurrentPage ?? 1;
+    var pageSize = ViewBag.PageSize ?? 10;
+    var totalItems = ViewBag.TotalItems ?? 0;
+    var totalPages = ViewBag.TotalPages ?? 1;
 }
 
-<!-- Content Header -->
 <div class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
@@ -13,7 +19,7 @@
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home", new { area = "Admin" })">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
                     <li class="breadcrumb-item active">Chi nhánh</li>
                 </ol>
             </div>
@@ -21,176 +27,121 @@
     </div>
 </div>
 
-<!-- Main content -->
 <section class="content">
     <div class="container-fluid">
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle"></i> @TempData["Success"]
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-        }
-
-        <!-- Quick Stats -->
-        <div class="row mb-3">
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-info">
-                    <div class="inner">
-                        <h3 id="totalCount">@Model.Count()</h3>
-                        <p>Tổng chi nhánh</p>
+        <!-- FILTER CARD -->
+        <div class="card card-outline card-primary mb-3">
+            <div class="card-body p-2">
+                <form method="get" asp-action="Index" class="form-inline">
+                    <div class="form-group mr-2">
+                        <label class="mr-2">Khách sạn:</label>
+                        <select name="hotelId" class="form-control form-control-sm" style="width: 200px;">
+                            <option value="">-- Tất cả khách sạn --</option>
+                            @foreach (var hotel in hotels)
+                            {
+                                <option value="@hotel.HotelId" selected="@(ViewBag.HotelId == hotel.HotelId)">@hotel.HotelName</option>
+                            }
+                        </select>
                     </div>
-                    <div class="icon"><i class="fas fa-building"></i></div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-success">
-                    <div class="inner">
-                        <h3>@Model.Select(b => b.City).Distinct().Count()</h3>
-                        <p>Thành phố</p>
+                    <div class="form-group mr-2">
+                        <label class="mr-2">Thành phố:</label>
+                        <input type="text" name="city" class="form-control form-control-sm" placeholder="Vd: Hà Nội..." value="@ViewBag.City" style="width: 150px;" />
                     </div>
-                    <div class="icon"><i class="fas fa-map-marker-alt"></i></div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-warning">
-                    <div class="inner">
-                        <h3>@Model.Select(b => b.Country).Distinct().Count()</h3>
-                        <p>Quốc gia</p>
+                    <div class="form-group mr-2">
+                        <label class="mr-2">Tìm kiếm:</label>
+                        <input type="text" name="searchTerm" class="form-control form-control-sm" placeholder="Tên chi nhánh, địa chỉ..." value="@ViewBag.SearchTerm" style="width: 200px;" />
                     </div>
-                    <div class="icon"><i class="fas fa-globe"></i></div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-danger">
-                    <div class="inner">
-                        <h3>@Model.Select(b => b.Hotel?.HotelName).Distinct().Count()</h3>
-                        <p>Khách sạn</p>
-                    </div>
-                    <div class="icon"><i class="fas fa-hotel"></i></div>
-                </div>
+                    <button type="submit" class="btn btn-primary btn-sm mr-2"><i class="fas fa-search"></i> Lọc</button>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary btn-sm"><i class="fas fa-redo"></i> Reset</a>
+                </form>
             </div>
         </div>
 
+        <!-- DANH SÁCH CHI NHÁNH -->
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-list"></i> Danh sách chi nhánh</h3>
+                <h3 class="card-title">
+                    <i class="fas fa-building"></i> Danh sách Chi nhánh
+                    <span class="badge badge-info ml-2">Trang @currentPage/@totalPages</span>
+                </h3>
                 <div class="card-tools">
-                    <a asp-action="Create" class="btn btn-success btn-sm">
-                        <i class="fas fa-plus"></i> Thêm mới
-                    </a>
+                    <span class="badge badge-primary mr-2">Tổng: @totalItems chi nhánh</span>
+                    <a asp-action="Create" class="btn btn-success btn-sm"><i class="fas fa-plus"></i> Thêm chi nhánh</a>
                 </div>
             </div>
             <div class="card-body">
-                <!-- Advanced Filters -->
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <i class="fas fa-check-circle"></i> @TempData["Success"]
+                    </div>
+                }
+
+                <!-- TOOLBAR PHÂN TRANG -->
                 <div class="row mb-3">
-                    <div class="col-md-4">
-                        <label><i class="fas fa-search"></i> Tìm kiếm</label>
-                        <input type="text" id="searchBox" class="form-control" placeholder="Tên chi nhánh, địa chỉ, điện thoại...">
-                    </div>
-                    <div class="col-md-3">
-                        <label><i class="fas fa-building"></i> Khách sạn</label>
-                        <select id="hotelFilter" class="form-control">
-                            <option value="">Tất cả</option>
-                            @foreach (var hotel in Model.Select(b => b.Hotel?.HotelName).Distinct().Where(h => h != null))
-                            {
-                                <option value="@hotel">@hotel</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label><i class="fas fa-city"></i> Thành phố</label>
-                        <select id="cityFilter" class="form-control">
-                            <option value="">Tất cả</option>
-                            @foreach (var city in Model.Select(b => b.City).Distinct().Where(c => c != null))
-                            {
-                                <option value="@city">@city</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label><i class="fas fa-globe"></i> Quốc gia</label>
-                        <select id="countryFilter" class="form-control">
-                            <option value="">Tất cả</option>
-                            @foreach (var country in Model.Select(b => b.Country).Distinct().Where(c => c != null))
-                            {
-                                <option value="@country">@country</option>
-                            }
-                        </select>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="d-flex align-items-center">
+                            <label class="mb-0 mr-2">Hiển thị:</label>
+                            <form method="get" asp-action="Index">
+                                <input type="hidden" name="hotelId" value="@ViewBag.HotelId" />
+                                <input type="hidden" name="city" value="@ViewBag.City" />
+                                <input type="hidden" name="searchTerm" value="@ViewBag.SearchTerm" />
+                                <select name="pageSize" class="form-control form-control-sm" style="width: 80px;" onchange="this.form.submit()">
+                                    <option value="10" selected="@(pageSize == 10)">10</option>
+                                    <option value="25" selected="@(pageSize == 25)">25</option>
+                                    <option value="50" selected="@(pageSize == 50)">50</option>
+                                    <option value="100" selected="@(pageSize == 100)">100</option>
+                                </select>
+                            </form>
+                            <span class="ml-2 text-muted">
+                                Hiển thị @((currentPage - 1) * pageSize + 1) - @(Math.Min(currentPage * pageSize, totalItems)) / @totalItems
+                            </span>
+                        </div>
                     </div>
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-hover table-striped" id="branchTable">
-                        <thead class="bg-light">
+                    <table class="table table-bordered table-striped table-hover">
+                        <thead class="thead-dark">
                             <tr>
-                                <th>ID</th>
-                                <th>Khách sạn</th>
                                 <th>Tên chi nhánh</th>
+                                <th>Khách sạn</th>
                                 <th>Địa chỉ</th>
                                 <th>Thành phố</th>
-                                <th>Quốc gia</th>
                                 <th>Quản lý</th>
                                 <th>Điện thoại</th>
-                                <th style="width: 120px;">Thao tác</th>
+                                <th>Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var item in Model)
+                            @if (Model != null && Model.Any())
                             {
-                                <tr data-hotel="@(item.Hotel?.HotelName ?? "")" data-city="@item.City" data-country="@item.Country">
-                                    <td><strong class="text-muted">#@item.BranchId</strong></td>
-                                    <td>
-                                        <span class="badge badge-primary" style="font-size: 12px; padding: 6px 10px;">
-                                            <i class="fas fa-hotel"></i> @(item.Hotel?.HotelName ?? "N/A")
-                                        </span>
-                                    </td>
-                                    <td><strong class="text-primary">@item.BranchName</strong></td>
-                                    <td>
-                                        <i class="fas fa-map-marker-alt text-muted"></i>
-                                        <small>@item.Address</small>
-                                    </td>
-                                    <td>
-                                        <span class="badge badge-info">
-                                            <i class="fas fa-city"></i> @item.City
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge badge-secondary">
-                                            <i class="fas fa-flag"></i> @item.Country
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <i class="fas fa-user-tie text-success"></i>
-                                        <small>@(item.Manager?.FullName ?? "Chưa có")</small>
-                                    </td>
-                                    <td>
-                                        <i class="fas fa-phone text-primary"></i>
-                                        <small>@item.Phone</small>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <a asp-action="Details" asp-route-id="@item.BranchId"
-                                               class="btn btn-info"
-                                               data-toggle="tooltip"
-                                               title="Xem chi tiết">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a asp-action="Edit" asp-route-id="@item.BranchId"
-                                               class="btn btn-warning"
-                                               data-toggle="tooltip"
-                                               title="Chỉnh sửa">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a asp-action="Delete" asp-route-id="@item.BranchId"
-                                               class="btn btn-danger"
-                                               data-toggle="tooltip"
-                                               title="Xóa chi nhánh">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        </div>
+                                foreach (var branch in Model)
+                                {
+                                    <tr>
+                                        <td><strong>@branch.BranchName</strong></td>
+                                        <td>@(branch.Hotel?.HotelName ?? "N/A")</td>
+                                        <td>@branch.Address</td>
+                                        <td>@branch.City, @branch.Country</td>
+                                        <td>@(branch.Manager?.FullName ?? "N/A")</td>
+                                        <td>@branch.Phone</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a asp-action="Details" asp-route-id="@branch.BranchId" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
+                                                <a asp-action="Edit" asp-route-id="@branch.BranchId" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
+                                                <a asp-action="Delete" asp-route-id="@branch.BranchId" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">
+                                        <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                        <p class="mb-0">Không tìm thấy chi nhánh nào</p>
                                     </td>
                                 </tr>
                             }
@@ -198,12 +149,48 @@
                     </table>
                 </div>
 
-                <div class="mt-3 text-muted">
-                    <small>
-                        <i class="fas fa-info-circle"></i>
-                        Hiển thị <strong id="visibleCount">@Model.Count()</strong> / @Model.Count() chi nhánh
-                    </small>
-                </div>
+                <!-- PAGINATION -->
+                @if (totalItems > 0)
+                {
+                    <div class="row mt-3">
+                        <div class="col-12 d-flex justify-content-center">
+                            <nav>
+                                <ul class="pagination">
+                                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { pageNumber = 1, pageSize, hotelId = ViewBag.HotelId, city = ViewBag.City, searchTerm = ViewBag.SearchTerm })">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { pageNumber = currentPage - 1, pageSize, hotelId = ViewBag.HotelId, city = ViewBag.City, searchTerm = ViewBag.SearchTerm })">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+                                    @{
+                                        var startPage = Math.Max(1, currentPage - 2);
+                                        var endPage = Math.Min(totalPages, currentPage + 2);
+                                        for (int i = startPage; i <= endPage; i++)
+                                        {
+                                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                                <a class="page-link" href="@Url.Action("Index", new { pageNumber = i, pageSize, hotelId = ViewBag.HotelId, city = ViewBag.City, searchTerm = ViewBag.SearchTerm })">@i</a>
+                                            </li>
+                                        }
+                                    }
+                                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { pageNumber = currentPage + 1, pageSize, hotelId = ViewBag.HotelId, city = ViewBag.City, searchTerm = ViewBag.SearchTerm })">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { pageNumber = totalPages, pageSize, hotelId = ViewBag.HotelId, city = ViewBag.City, searchTerm = ViewBag.SearchTerm })">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -211,61 +198,6 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
-            // Enable tooltips
-            $('[data-toggle="tooltip"]').tooltip();
-
-            // Combined filter function
-            function applyFilters() {
-                var searchValue = $('#searchBox').val().toLowerCase();
-                var hotel = $('#hotelFilter').val();
-                var city = $('#cityFilter').val();
-                var country = $('#countryFilter').val();
-
-                var visibleCount = 0;
-
-                $('#branchTable tbody tr').each(function() {
-                    var $row = $(this);
-                    var text = $row.text().toLowerCase();
-                    var rowHotel = $row.data('hotel');
-                    var rowCity = $row.data('city');
-                    var rowCountry = $row.data('country');
-                    var show = true;
-
-                    // Search filter
-                    if (searchValue && text.indexOf(searchValue) === -1) {
-                        show = false;
-                    }
-
-                    // Hotel filter
-                    if (hotel && rowHotel !== hotel) {
-                        show = false;
-                    }
-
-                    // City filter
-                    if (city && rowCity !== city) {
-                        show = false;
-                    }
-
-                    // Country filter
-                    if (country && rowCountry !== country) {
-                        show = false;
-                    }
-
-                    $row.toggle(show);
-                    if (show) visibleCount++;
-                });
-
-                $('#visibleCount').text(visibleCount);
-            }
-
-            // Attach filter events
-            $('#searchBox, #hotelFilter, #cityFilter, #countryFilter').on('keyup change', applyFilters);
-
-            // Auto hide alerts
-            setTimeout(function() {
-                $('.alert').fadeOut('slow');
-            }, 3000);
-        });
+        setTimeout(function() { $('.alert-success').fadeOut('slow'); }, 3000);
     </script>
 }

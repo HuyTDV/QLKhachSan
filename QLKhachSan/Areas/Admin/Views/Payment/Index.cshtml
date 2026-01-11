@@ -3,6 +3,20 @@
 @{
     ViewData["Title"] = "Quản lý thanh toán";
     var totalAmount = Model?.Sum(p => p.Amount ?? 0) ?? 0;
+    var totalTransactions = Model?.Count() ?? 0;
+
+    // FIXED: Tính đầy đủ tất cả các phương thức thanh toán
+    // Thanh toán tiền mặt (Cash)
+    var cashPayments = Model?.Where(p => p.PaymentMethod == "Cash").Sum(p => p.Amount ?? 0) ?? 0;
+
+    // Thanh toán online (VNPay, E-wallet)
+    var onlinePayments = Model?.Where(p => p.PaymentMethod == "E-wallet" || p.PaymentMethod == "VNPay").Sum(p => p.Amount ?? 0) ?? 0;
+
+    // Thanh toán qua thẻ tín dụng (Credit Card)
+    var creditCardPayments = Model?.Where(p => p.PaymentMethod == "Credit Card").Sum(p => p.Amount ?? 0) ?? 0;
+
+    // Thanh toán chuyển khoản (Bank Transfer)
+    var bankTransferPayments = Model?.Where(p => p.PaymentMethod == "Bank Transfer").Sum(p => p.Amount ?? 0) ?? 0;
 }
 
 <!-- Content Header -->
@@ -10,11 +24,11 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0">Quản lý thanh toán</h1>
+                <h1 class="m-0"><i class="fas fa-money-bill-wave"></i> Quản lý thanh toán</h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")"><i class="fas fa-home"></i> Trang chủ</a></li>
                     <li class="breadcrumb-item active">Thanh toán</li>
                 </ol>
             </div>
@@ -25,9 +39,9 @@
 <!-- Main content -->
 <section class="content">
     <div class="container-fluid">
-        <!-- Stats -->
+        <!-- Stats - FIXED: Equal height boxes -->
         <div class="row mb-3">
-            <div class="col-md-3">
+            <div class="col-lg-3 col-md-6">
                 <div class="small-box bg-success">
                     <div class="inner">
                         <h3>@totalAmount.ToString("N0")<sup style="font-size: 20px">₫</sup></h3>
@@ -36,16 +50,84 @@
                     <div class="icon">
                         <i class="fas fa-money-bill-wave"></i>
                     </div>
+                    <a href="#" class="small-box-footer">
+                        Chi tiết <i class="fas fa-arrow-circle-right"></i>
+                    </a>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-lg-3 col-md-6">
                 <div class="small-box bg-info">
                     <div class="inner">
-                        <h3>@(Model?.Count() ?? 0)</h3>
+                        <h3>@totalTransactions</h3>
                         <p>Số giao dịch</p>
                     </div>
                     <div class="icon">
                         <i class="fas fa-receipt"></i>
+                    </div>
+                    <a href="#" class="small-box-footer">
+                        Chi tiết <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@cashPayments.ToString("N0")<sup style="font-size: 16px">₫</sup></h3>
+                        <p>Tiền mặt</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-money-bill"></i>
+                    </div>
+                    <a href="#" class="small-box-footer">
+                        Chi tiết <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>@onlinePayments.ToString("N0")<sup style="font-size: 16px">₫</sup></h3>
+                        <p>Online (VNPay/E-wallet)</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <a href="#" class="small-box-footer">
+                        Chi tiết <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Stats Row -->
+        <div class="row mb-3">
+            <div class="col-lg-6 col-md-6">
+                <div class="info-box bg-primary">
+                    <span class="info-box-icon"><i class="fas fa-credit-card"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Thẻ tín dụng (Credit Card)</span>
+                        <span class="info-box-number">@creditCardPayments.ToString("N0") ₫</span>
+                        <div class="progress">
+                            <div class="progress-bar" style="width: @((totalAmount > 0 ? (creditCardPayments / totalAmount * 100) : 0).ToString("N0"))%"></div>
+                        </div>
+                        <span class="progress-description">
+                            @((totalAmount > 0 ? (creditCardPayments / totalAmount * 100) : 0).ToString("N1"))% tổng doanh thu
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6">
+                <div class="info-box bg-secondary">
+                    <span class="info-box-icon"><i class="fas fa-university"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Chuyển khoản (Bank Transfer)</span>
+                        <span class="info-box-number">@bankTransferPayments.ToString("N0") ₫</span>
+                        <div class="progress">
+                            <div class="progress-bar" style="width: @((totalAmount > 0 ? (bankTransferPayments / totalAmount * 100) : 0).ToString("N0"))%"></div>
+                        </div>
+                        <span class="progress-description">
+                            @((totalAmount > 0 ? (bankTransferPayments / totalAmount * 100) : 0).ToString("N1"))% tổng doanh thu
+                        </span>
                     </div>
                 </div>
             </div>
@@ -53,11 +135,20 @@
 
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Danh sách thanh toán</h3>
+                <h3 class="card-title"><i class="fas fa-list"></i> Danh sách thanh toán</h3>
                 <div class="card-tools">
                     <a asp-action="Create" class="btn btn-success btn-sm">
                         <i class="fas fa-plus"></i> Thêm thanh toán
                     </a>
+                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#filterModal">
+                        <i class="fas fa-filter"></i> Lọc
+                    </button>
+                    <button type="button" class="btn btn-info btn-sm" onclick="window.print()">
+                        <i class="fas fa-print"></i> In
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="exportToExcel()">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </button>
                 </div>
             </div>
             <div class="card-body">
@@ -65,22 +156,63 @@
                 {
                     <div class="alert alert-success alert-dismissible fade show">
                         <button type="button" class="close" data-dismiss="alert">&times;</button>
-                        @TempData["Success"]
+                        <i class="fas fa-check-circle"></i> @TempData["Success"]
                     </div>
                 }
 
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+                    </div>
+                }
+
+                <!-- Search bar -->
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            </div>
+                            <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm theo mã thanh toán, khách hàng, mã giao dịch...">
+                            <div class="input-group-append">
+                                <button class="btn btn-secondary" type="button" id="clearSearch">
+                                    <i class="fas fa-times"></i> Xóa
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
-                    <table class="table table-bordered table-striped table-hover">
+                    <table class="table table-bordered table-striped table-hover" id="paymentTable">
                         <thead class="thead-dark">
                             <tr>
-                                <th>Mã thanh toán</th>
-                                <th>Booking</th>
-                                <th>Khách hàng</th>
-                                <th>Số tiền</th>
-                                <th>Phương thức</th>
-                                <th>Mã giao dịch</th>
-                                <th>Ngày thanh toán</th>
-                                <th>Thao tác</th>
+                                <th style="width: 80px;">
+                                    <i class="fas fa-hashtag"></i> Mã
+                                </th>
+                                <th style="width: 100px;">
+                                    <i class="fas fa-calendar"></i> Booking
+                                </th>
+                                <th>
+                                    <i class="fas fa-user"></i> Khách hàng
+                                </th>
+                                <th style="width: 150px;">
+                                    <i class="fas fa-money-bill"></i> Số tiền
+                                </th>
+                                <th style="width: 140px;">
+                                    <i class="fas fa-credit-card"></i> Phương thức
+                                </th>
+                                <th style="width: 150px;">
+                                    <i class="fas fa-barcode"></i> Mã GD
+                                </th>
+                                <th style="width: 140px;">
+                                    <i class="fas fa-clock"></i> Ngày TT
+                                </th>
+                                <th style="width: 150px;" class="text-center">
+                                    <i class="fas fa-cog"></i> Thao tác
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -88,58 +220,92 @@
                             {
                                 foreach (var payment in Model)
                                 {
-                                    <tr>
-                                        <td><strong>#@payment.PaymentId</strong></td>
-                                        <td>
-                                            <a asp-controller="Booking" asp-action="Details" asp-route-id="@payment.BookingId">
-                                                #@payment.BookingId
+                                    <tr data-payment-id="@payment.PaymentId">
+                                        <td><strong class="text-primary">#@payment.PaymentId</strong></td>
+                                        <td class="text-center">
+                                            <a asp-controller="Booking" asp-action="Details" asp-route-id="@payment.BookingId" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-link"></i> #@payment.BookingId
                                             </a>
                                         </td>
-                                        <td>@(payment.Booking?.User?.FullName ?? "N/A")</td>
                                         <td>
-                                            <strong class="text-success">@payment.Amount?.ToString("N0") ₫</strong>
+                                            <strong>@(payment.Booking?.User?.FullName ?? "N/A")</strong>
+                                            @if (payment.Booking?.Room != null)
+                                            {
+                                                <br>
+                                    
+                                                <small class="text-muted">
+                                                    <i class="fas fa-door-open"></i> Phòng @payment.Booking.Room.RoomNumber
+                                                </small>
+                                            }
+                                        </td>
+                                        <td>
+                                            <strong class="text-success" style="font-size: 1.1em;">
+                                                @payment.Amount?.ToString("N0") ₫
+                                            </strong>
                                         </td>
                                         <td>
                                             @if (payment.PaymentMethod == "Credit Card")
                                             {
-                                                <span class="badge badge-primary">
+                                                <span class="badge badge-primary badge-lg">
                                                     <i class="fas fa-credit-card"></i> Thẻ tín dụng
                                                 </span>
                                             }
                                             else if (payment.PaymentMethod == "Cash")
                                             {
-                                                <span class="badge badge-success">
+                                                <span class="badge badge-success badge-lg">
                                                     <i class="fas fa-money-bill"></i> Tiền mặt
                                                 </span>
                                             }
                                             else if (payment.PaymentMethod == "Bank Transfer")
                                             {
-                                                <span class="badge badge-info">
+                                                <span class="badge badge-info badge-lg">
                                                     <i class="fas fa-university"></i> Chuyển khoản
                                                 </span>
                                             }
                                             else if (payment.PaymentMethod == "E-wallet")
                                             {
-                                                <span class="badge badge-warning">
+                                                <span class="badge badge-warning badge-lg">
                                                     <i class="fas fa-wallet"></i> Ví điện tử
+                                                </span>
+                                            }
+                                            else if (payment.PaymentMethod == "VNPay")
+                                            {
+                                                <span class="badge badge-danger badge-lg">
+                                                    <i class="fas fa-mobile-alt"></i> VNPay
                                                 </span>
                                             }
                                             else
                                             {
-                                                <span class="badge badge-secondary">@payment.PaymentMethod</span>
+                                                <span class="badge badge-secondary badge-lg">@payment.PaymentMethod</span>
                                             }
                                         </td>
-                                        <td><code>@payment.TransactionCode</code></td>
-                                        <td>@payment.PaidAt?.ToString("dd/MM/yyyy HH:mm")</td>
                                         <td>
+                                            @if (!string.IsNullOrEmpty(payment.TransactionCode))
+                                            {
+                                                <code style="font-size: 0.85em;">@payment.TransactionCode</code>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <i class="fas fa-calendar-check text-info"></i>
+                                            @payment.PaidAt?.ToString("dd/MM/yyyy")<br>
+                                            <small class="text-muted">@payment.PaidAt?.ToString("HH:mm")</small>
+                                        </td>
+                                        <td class="text-center">
                                             <div class="btn-group">
-                                                <a asp-action="Details" asp-route-id="@payment.PaymentId" class="btn btn-info btn-sm" title="Chi tiết">
+                                                <a asp-action="Details" asp-route-id="@payment.PaymentId"
+                                                   class="btn btn-info btn-sm" title="Chi tiết">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a asp-action="Edit" asp-route-id="@payment.PaymentId" class="btn btn-warning btn-sm" title="Sửa">
+                                                <a asp-action="Edit" asp-route-id="@payment.PaymentId"
+                                                   class="btn btn-warning btn-sm" title="Sửa">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <a asp-action="Delete" asp-route-id="@payment.PaymentId" class="btn btn-danger btn-sm" title="Xóa">
+                                                <a asp-action="Delete" asp-route-id="@payment.PaymentId"
+                                                   class="btn btn-danger btn-sm" title="Xóa">
                                                     <i class="fas fa-trash"></i>
                                                 </a>
                                             </div>
@@ -150,16 +316,176 @@
                             else
                             {
                                 <tr>
-                                    <td colspan="8" class="text-center text-muted">
-                                        <i class="fas fa-receipt fa-3x mb-3"></i>
-                                        <p>Chưa có thanh toán nào</p>
+                                    <td colspan="8" class="text-center py-5">
+                                        <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                                        <h5 class="text-muted">Chưa có thanh toán nào</h5>
+                                        <a asp-action="Create" class="btn btn-success mt-2">
+                                            <i class="fas fa-plus"></i> Thêm thanh toán đầu tiên
+                                        </a>
                                     </td>
                                 </tr>
                             }
                         </tbody>
+                        <tfoot class="bg-light">
+                            <tr>
+                                <td colspan="3" class="text-right"><strong>TỔNG CỘNG:</strong></td>
+                                <td><strong class="text-success" style="font-size: 1.2em;">@totalAmount.ToString("N0") ₫</strong></td>
+                                <td colspan="4"></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+<!-- Filter Modal -->
+<div class="modal fade" id="filterModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title"><i class="fas fa-filter"></i> Lọc thanh toán</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+            <form method="get" asp-action="Index">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label><i class="fas fa-search"></i> Từ khóa tìm kiếm</label>
+                        <input type="text" name="searchTerm" class="form-control" placeholder="Mã thanh toán, khách hàng...">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-credit-card"></i> Phương thức thanh toán</label>
+                        <select name="paymentMethod" class="form-control">
+                            <option value="">-- Tất cả --</option>
+                            <option value="Cash">Tiền mặt</option>
+                            <option value="Credit Card">Thẻ tín dụng</option>
+                            <option value="Bank Transfer">Chuyển khoản</option>
+                            <option value="E-wallet">Ví điện tử</option>
+                            <option value="VNPay">VNPay</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label><i class="fas fa-calendar-alt"></i> Từ ngày</label>
+                                <input type="date" name="fromDate" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label><i class="fas fa-calendar-alt"></i> Đến ngày</label>
+                                <input type="date" name="toDate" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Đóng
+                    </button>
+                    <a href="@Url.Action("Index")" class="btn btn-warning">
+                        <i class="fas fa-redo"></i> Đặt lại
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter"></i> Áp dụng lọc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .badge-lg {
+        padding: 0.4em 0.7em;
+        font-size: 0.85em;
+    }
+
+    /* FIXED: Equal height for all small-box elements */
+    .small-box {
+        position: relative;
+        overflow: hidden;
+        min-height: 120px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .small-box .inner {
+        padding: 10px;
+        flex: 1;
+    }
+
+    .small-box .small-box-footer {
+        position: relative;
+        display: block;
+        padding: 3px 0;
+        margin-top: auto;
+        text-align: center;
+        text-decoration: none;
+        z-index: 10;
+        background: rgba(0,0,0,0.1);
+        color: rgba(255,255,255,0.8);
+    }
+
+    .small-box .icon {
+        position: absolute;
+        top: auto;
+        bottom: 10px;
+        right: 10px;
+        z-index: 0;
+        font-size: 70px;
+        color: rgba(0,0,0,0.15);
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    /* Info box styling */
+    .info-box {
+        min-height: 90px;
+    }
+
+    @@media print {
+        .card-tools, .btn-group, .breadcrumb, .content-header {
+            display: none !important;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Search functionality
+            $('#searchInput').on('keyup', function() {
+                var value = $(this).val().toLowerCase();
+                $('#paymentTable tbody tr').filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+            });
+
+            // Clear search
+            $('#clearSearch').on('click', function() {
+                $('#searchInput').val('');
+                $('#paymentTable tbody tr').show();
+            });
+
+            // Auto dismiss alerts
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+        });
+
+        // Export to Excel
+        function exportToExcel() {
+            var table = document.getElementById('paymentTable');
+            var html = table.outerHTML;
+            var url = 'data:application/vnd.ms-excel,' + encodeURIComponent(html);
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = 'thanh-toan-' + new Date().getTime() + '.xls';
+            link.click();
+        }
+    </script>
+}

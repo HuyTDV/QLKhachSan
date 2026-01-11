@@ -7,58 +7,103 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-8 offset-md-2">
-            <div class="card">
+            <div class="card card-primary">
                 <div class="card-header">
-                    <h3 class="card-title">Thêm Dịch vụ mới</h3>
+                    <h3 class="card-title">
+                        <i class="fas fa-plus-circle"></i> Thêm Dịch vụ mới
+                    </h3>
                 </div>
-                <form asp-action="Create" method="post">
+                <form asp-action="Create" method="post" id="serviceForm">
                     <div class="card-body">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
                         <div class="form-group">
-                            <label asp-for="ServiceName" class="control-label">Tên dịch vụ <span class="text-danger">*</span></label>
+                            <label asp-for="ServiceName" class="control-label">
+                                Tên dịch vụ <span class="text-danger">*</span>
+                            </label>
                             <div class="input-group">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="fas fa-concierge-bell"></i>
                                     </span>
                                 </div>
-                                <input asp-for="ServiceName" class="form-control" placeholder="Vd: Breakfast Buffet" required />
+                                <input asp-for="ServiceName" class="form-control"
+                                       placeholder="Vd: Breakfast Buffet" required />
                             </div>
                             <span asp-validation-for="ServiceName" class="text-danger"></span>
                         </div>
 
                         <div class="form-group">
                             <label asp-for="Description" class="control-label">Mô tả dịch vụ</label>
-                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Nhập mô tả chi tiết về dịch vụ"></textarea>
+                            <textarea asp-for="Description" class="form-control" rows="4"
+                                      placeholder="Nhập mô tả chi tiết về dịch vụ"
+                                      maxlength="200"></textarea>
+                            <small class="form-text text-muted">
+                                <span id="charCount">0</span>/200 ký tự
+                            </small>
                             <span asp-validation-for="Description" class="text-danger"></span>
                         </div>
 
                         <div class="form-group">
-                            <label asp-for="Price" class="control-label">Giá dịch vụ (VNĐ) <span class="text-danger">*</span></label>
+                            <label asp-for="Price" class="control-label">
+                                Giá dịch vụ (VNĐ) <span class="text-danger">*</span>
+                            </label>
                             <div class="input-group">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="fas fa-money-bill-wave"></i>
                                     </span>
                                 </div>
-                                <input asp-for="Price" type="number" step="1000" min="0" class="form-control" placeholder="Vd: 150000" required />
+                                <input asp-for="Price" type="number" step="1000" min="0"
+                                       class="form-control" placeholder="Vd: 150000" required />
                                 <div class="input-group-append">
                                     <span class="input-group-text">VNĐ</span>
                                 </div>
                             </div>
+                            <small class="form-text text-muted">
+                                Giá hiển thị: <strong id="pricePreview">0 VNĐ</strong>
+                            </small>
                             <span asp-validation-for="Price" class="text-danger"></span>
                         </div>
 
                         <div class="alert alert-info">
                             <i class="fas fa-lightbulb"></i>
-                            <strong>Gợi ý dịch vụ phổ biến:</strong> Breakfast Buffet, Airport Pickup, Laundry, Spa Package, City Tour, Room Service, Gym, Swimming Pool
+                            <strong>Gợi ý dịch vụ phổ biến:</strong>
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary suggestion-btn" data-name="Breakfast Buffet" data-desc="Morning buffet from 6-9 AM" data-price="150000">Breakfast Buffet</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary suggestion-btn" data-name="Airport Pickup" data-desc="Pickup by hotel car" data-price="250000">Airport Pickup</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary suggestion-btn" data-name="Laundry" data-desc="Washing and ironing clothes" data-price="100000">Laundry</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary suggestion-btn" data-name="Spa Package" data-desc="Full body massage and sauna" data-price="500000">Spa Package</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary suggestion-btn" data-name="City Tour" data-desc="Half-day city tour with guide" data-price="400000">City Tour</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary suggestion-btn" data-name="Room Service" data-desc="24/7 room service" data-price="50000">Room Service</button>
+                            </div>
+                        </div>
+
+                        <!-- Preview Card -->
+                        <div class="card card-outline card-primary">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-eye"></i> Xem trước
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <h5 id="previewName" class="text-primary">
+                                    <i class="fas fa-concierge-bell"></i> <span>Tên dịch vụ</span>
+                                </h5>
+                                <p id="previewDesc" class="text-muted">Mô tả dịch vụ sẽ hiển thị tại đây...</p>
+                                <h4 id="previewPrice" class="text-success">
+                                    <i class="fas fa-money-bill-wave"></i> 0 VNĐ
+                                </h4>
+                            </div>
                         </div>
                     </div>
 
                     <div class="card-footer">
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Lưu
+                            <i class="fas fa-save"></i> Lưu dịch vụ
+                        </button>
+                        <button type="reset" class="btn btn-warning">
+                            <i class="fas fa-eraser"></i> Xóa form
                         </button>
                         <a asp-action="Index" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Quay lại
@@ -75,12 +120,74 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        // Format số tiền
-        document.querySelector('input[name="Price"]').addEventListener('blur', function() {
-            if (this.value) {
-                const value = parseInt(this.value);
-                this.value = value;
+        $(document).ready(function() {
+            // Character count for description
+            $('#Description').on('input', function() {
+                const length = $(this).val().length;
+                $('#charCount').text(length);
+                updatePreview();
+            });
+
+            // Price formatting and preview
+            $('#Price').on('input', function() {
+                const value = parseInt($(this).val()) || 0;
+                $('#pricePreview').text(value.toLocaleString('vi-VN') + ' VNĐ');
+                updatePreview();
+            });
+
+            // Service name preview
+            $('#ServiceName').on('input', function() {
+                updatePreview();
+            });
+
+            // Suggestion buttons
+            $('.suggestion-btn').on('click', function() {
+                $('#ServiceName').val($(this).data('name'));
+                $('#Description').val($(this).data('desc'));
+                $('#Price').val($(this).data('price'));
+
+                // Trigger updates
+                $('#Description').trigger('input');
+                $('#Price').trigger('input');
+                $('#ServiceName').trigger('input');
+
+                // Highlight button
+                $('.suggestion-btn').removeClass('btn-primary').addClass('btn-outline-primary');
+                $(this).removeClass('btn-outline-primary').addClass('btn-primary');
+            });
+
+            // Update preview card
+            function updatePreview() {
+                const name = $('#ServiceName').val() || 'Tên dịch vụ';
+                const desc = $('#Description').val() || 'Mô tả dịch vụ sẽ hiển thị tại đây...';
+                const price = parseInt($('#Price').val()) || 0;
+
+                $('#previewName span').text(name);
+                $('#previewDesc').text(desc);
+                $('#previewPrice').html('<i class="fas fa-money-bill-wave"></i> ' +
+                                       price.toLocaleString('vi-VN') + ' VNĐ');
             }
+
+            // Form validation
+            $('#serviceForm').on('submit', function(e) {
+                const price = parseInt($('#Price').val());
+                if (price <= 0) {
+                    e.preventDefault();
+                    alert('Giá dịch vụ phải lớn hơn 0!');
+                    $('#Price').focus();
+                    return false;
+                }
+            });
+
+            // Reset form
+            $('button[type="reset"]').on('click', function() {
+                setTimeout(function() {
+                    $('#charCount').text('0');
+                    $('#pricePreview').text('0 VNĐ');
+                    updatePreview();
+                    $('.suggestion-btn').removeClass('btn-primary').addClass('btn-outline-primary');
+                }, 100);
+            });
         });
     </script>
 }

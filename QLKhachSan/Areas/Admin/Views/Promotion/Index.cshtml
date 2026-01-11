@@ -2,100 +2,437 @@
 
 @{
     ViewData["Title"] = "Quản lý Khuyến mãi";
+    var today = DateOnly.FromDateTime(DateTime.Now);
+
+    // Statistics
+    var totalPromotions = Model?.Count() ?? 0;
+    var activePromotions = Model?.Count(p => p.StartDate <= today && p.EndDate >= today) ?? 0;
+    var upcomingPromotions = Model?.Count(p => p.StartDate > today) ?? 0;
+    var expiredPromotions = Model?.Count(p => p.EndDate < today) ?? 0;
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="card-title">Danh sách Khuyến mãi</h3>
-                    <a asp-action="Create" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Thêm mới
-                    </a>
-                </div>
-                <div class="card-body">
-                    @if (TempData["Success"] != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show">
-                            @TempData["Success"]
-                            <button type="button" class="close" data-dismiss="alert">&times;</button>
-                        </div>
-                    }
-
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Mã khuyến mãi</th>
-                                    <th>Mô tả</th>
-                                    <th>Giảm giá</th>
-                                    <th>Ngày bắt đầu</th>
-                                    <th>Ngày kết thúc</th>
-                                    <th>Trạng thái</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in Model)
-                                {
-                                    var today = DateOnly.FromDateTime(DateTime.Now);
-                                    var isActive = item.StartDate <= today && item.EndDate >= today;
-                                    var isUpcoming = item.StartDate > today;
-                                    var isExpired = item.EndDate < today;
-
-                                    <tr>
-                                        <td>@item.PromotionId</td>
-                                        <td>
-                                            <strong class="text-primary">@item.Code</strong>
-                                        </td>
-                                        <td>@item.Description</td>
-                                        <td>
-                                            <span class="badge badge-success" style="font-size: 1em;">
-                                                <i class="fas fa-percentage"></i> @item.DiscountPercent%
-                                            </span>
-                                        </td>
-                                        <td>@item.StartDate?.ToString("dd/MM/yyyy")</td>
-                                        <td>@item.EndDate?.ToString("dd/MM/yyyy")</td>
-                                        <td>
-                                            @if (isActive)
-                                            {
-                                                <span class="badge badge-success">
-                                                    <i class="fas fa-check-circle"></i> Đang áp dụng
-                                                </span>
-                                            }
-                                            else if (isUpcoming)
-                                            {
-                                                <span class="badge badge-info">
-                                                    <i class="fas fa-clock"></i> Sắp diễn ra
-                                                </span>
-                                            }
-                                            else if (isExpired)
-                                            {
-                                                <span class="badge badge-danger">
-                                                    <i class="fas fa-times-circle"></i> Đã hết hạn
-                                                </span>
-                                            }
-                                        </td>
-                                        <td>
-                                            <a asp-action="Details" asp-route-id="@item.PromotionId" class="btn btn-info btn-sm">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a asp-action="Edit" asp-route-id="@item.PromotionId" class="btn btn-warning btn-sm">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a asp-action="Delete" asp-route-id="@item.PromotionId" class="btn btn-danger btn-sm">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0"><i class="fas fa-tags"></i> Quản lý Khuyến mãi</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")"><i class="fas fa-home"></i> Trang chủ</a></li>
+                    <li class="breadcrumb-item active">Khuyến mãi</li>
+                </ol>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <!-- Stats -->
+        <div class="row mb-3">
+            <div class="col-lg-3 col-md-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>@totalPromotions</h3>
+                        <p>Tổng số mã</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <a href="#" class="small-box-footer">
+                        Chi tiết <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@activePromotions</h3>
+                        <p>Đang áp dụng</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <a href="#" class="small-box-footer" onclick="filterByStatus('active')">
+                        Xem danh sách <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@upcomingPromotions</h3>
+                        <p>Sắp diễn ra</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <a href="#" class="small-box-footer" onclick="filterByStatus('upcoming')">
+                        Xem danh sách <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>@expiredPromotions</h3>
+                        <p>Đã hết hạn</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <a href="#" class="small-box-footer" onclick="filterByStatus('expired')">
+                        Xem danh sách <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-list"></i> Danh sách Khuyến mãi</h3>
+                <div class="card-tools">
+                    <a asp-action="Create" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus"></i> Thêm mã mới
+                    </a>
+                    <button type="button" class="btn btn-info btn-sm" onclick="exportToExcel()">
+                        <i class="fas fa-file-excel"></i> Xuất Excel
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <i class="fas fa-check-circle"></i> @TempData["Success"]
+                    </div>
+                }
+
+                <!-- Search and Filter -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            </div>
+                            <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm theo mã, mô tả...">
+                            <div class="input-group-append">
+                                <button class="btn btn-secondary" type="button" id="clearSearch">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <select id="statusFilter" class="form-control" onchange="filterTable()">
+                            <option value="all">Tất cả trạng thái</option>
+                            <option value="active">Đang áp dụng</option>
+                            <option value="upcoming">Sắp diễn ra</option>
+                            <option value="expired">Đã hết hạn</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover" id="promotionTable">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th style="width: 60px;">ID</th>
+                                <th style="width: 150px;">
+                                    <i class="fas fa-tag"></i> Mã khuyến mãi
+                                </th>
+                                <th>
+                                    <i class="fas fa-info-circle"></i> Mô tả
+                                </th>
+                                <th style="width: 120px;" class="text-center">
+                                    <i class="fas fa-percentage"></i> Giảm giá
+                                </th>
+                                <th style="width: 120px;">
+                                    <i class="fas fa-calendar-alt"></i> Bắt đầu
+                                </th>
+                                <th style="width: 120px;">
+                                    <i class="fas fa-calendar-times"></i> Kết thúc
+                                </th>
+                                <th style="width: 140px;" class="text-center">
+                                    <i class="fas fa-signal"></i> Trạng thái
+                                </th>
+                                <th style="width: 160px;" class="text-center">
+                                    <i class="fas fa-cog"></i> Thao tác
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                foreach (var item in Model)
+                                {
+                                    var isActive = item.StartDate <= today && item.EndDate >= today;
+                                    var isUpcoming = item.StartDate > today;
+                                    var isExpired = item.EndDate < today;
+
+                                    string statusClass = isActive ? "active" : (isUpcoming ? "upcoming" : "expired");
+                                    string rowClass = isExpired ? "table-secondary" : "";
+
+                                    <tr class="@rowClass" data-status="@statusClass">
+                                        <td class="text-center"><strong>#@item.PromotionId</strong></td>
+                                        <td>
+                                            <div class="promo-code-box">
+                                                <code class="promo-code">@item.Code</code>
+                                                <button class="btn btn-xs btn-outline-secondary ml-2" onclick="copyCode('@item.Code')" title="Copy mã">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">@item.Description</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <h5 class="mb-0">
+                                                <span class="badge badge-success" style="font-size: 1.1em;">
+                                                    @item.DiscountPercent%
+                                                </span>
+                                            </h5>
+                                        </td>
+                                        <td>
+                                            <small>
+                                                <i class="fas fa-calendar-day text-info"></i>
+                                                @item.StartDate?.ToString("dd/MM/yyyy")
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <small>
+                                                <i class="fas fa-calendar-check text-warning"></i>
+                                                @item.EndDate?.ToString("dd/MM/yyyy")
+                                            </small>
+                                        </td>
+                                        <td class="text-center">
+                                            @if (isActive)
+                                            {
+                                                var daysLeft = item.EndDate.Value.DayNumber - today.DayNumber;
+                                                <span class="badge badge-success badge-lg">
+                                                    <i class="fas fa-check-circle"></i> Đang áp dụng
+                                                </span>
+                                                <br>
+                                                <small class="text-muted">Còn @daysLeft ngày</small>
+                                            }
+                                            else if (isUpcoming)
+                                            {
+                                                var daysUntil = item.StartDate.Value.DayNumber - today.DayNumber;
+                                                <span class="badge badge-info badge-lg">
+                                                    <i class="fas fa-clock"></i> Sắp diễn ra
+                                                </span>
+                                                <br>
+                                                <small class="text-muted">Sau @daysUntil ngày</small>
+                                            }
+                                            else if (isExpired)
+                                            {
+                                                <span class="badge badge-danger badge-lg">
+                                                    <i class="fas fa-times-circle"></i> Hết hạn
+                                                </span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group">
+                                                <a asp-action="Details" asp-route-id="@item.PromotionId"
+                                                   class="btn btn-info btn-sm" title="Chi tiết">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a asp-action="Edit" asp-route-id="@item.PromotionId"
+                                                   class="btn btn-warning btn-sm" title="Sửa">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a asp-action="Delete" asp-route-id="@item.PromotionId"
+                                                   class="btn btn-danger btn-sm" title="Xóa">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="8" class="text-center py-5">
+                                        <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+                                        <h5 class="text-muted">Chưa có mã khuyến mãi nào</h5>
+                                        <a asp-action="Create" class="btn btn-success mt-2">
+                                            <i class="fas fa-plus"></i> Thêm mã khuyến mãi đầu tiên
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* Promo code styling */
+    .promo-code-box {
+        display: flex;
+        align-items: center;
+    }
+
+    .promo-code {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 5px;
+        font-weight: bold;
+        font-size: 1em;
+        letter-spacing: 1px;
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+
+    .badge-lg {
+        padding: 0.5em 0.8em;
+        font-size: 0.9em;
+    }
+
+    /* FIXED: Equal height for small boxes with centered icons */
+    .small-box {
+        position: relative;
+        min-height: 120px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+        .small-box .inner {
+            padding: 10px;
+            flex: 1;
+            position: relative;
+            z-index: 10;
+        }
+
+        .small-box .small-box-footer {
+            position: relative;
+            display: block;
+            padding: 3px 0;
+            margin-top: auto;
+            text-align: center;
+            text-decoration: none;
+            z-index: 10;
+            background: rgba(0,0,0,0.1);
+            color: rgba(255,255,255,0.8);
+        }
+
+        .small-box .icon {
+            position: absolute;
+            top: 15px; /* THAY ĐỔI: Căn trên, cách top 15px */
+            right: 15px;
+            z-index: 0;
+            font-size: 70px;
+            color: rgba(0,0,0,0.15);
+            transition: all 0.3s linear;
+        }
+
+        .small-box:hover .icon {
+            font-size: 80px;
+            right: 10px;
+            top: 10px; /* THÊM: Di chuyển lên trên khi hover */
+        }
+
+    /* Table enhancements */
+    .table td {
+        vertical-align: middle;
+    }
+
+    .table-secondary {
+        opacity: 0.7;
+    }
+
+    /* Copy button animation */
+    .btn-outline-secondary:hover {
+        transform: scale(1.1);
+        transition: transform 0.2s;
+    }
+
+    /* Status badges */
+    .badge-success {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            // Search functionality
+            $('#searchInput').on('keyup', function() {
+                filterTable();
+            });
+
+            // Clear search
+            $('#clearSearch').on('click', function() {
+                $('#searchInput').val('');
+                filterTable();
+            });
+
+            // Auto dismiss alerts
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+        });
+
+        // Filter table by search and status
+        function filterTable() {
+            const searchValue = $('#searchInput').val().toLowerCase();
+            const statusValue = $('#statusFilter').val();
+
+            $('#promotionTable tbody tr').each(function() {
+                const row = $(this);
+                const text = row.text().toLowerCase();
+                const status = row.data('status');
+
+                let matchSearch = text.indexOf(searchValue) > -1;
+                let matchStatus = statusValue === 'all' || status === statusValue;
+
+                row.toggle(matchSearch && matchStatus);
+            });
+        }
+
+        // Filter by status from stats boxes
+        function filterByStatus(status) {
+            $('#statusFilter').val(status);
+            filterTable();
+            $('html, body').animate({
+                scrollTop: $('#promotionTable').offset().top - 100
+            }, 500);
+        }
+
+        // Copy promotion code
+        function copyCode(code) {
+            navigator.clipboard.writeText(code).then(function() {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Đã copy!',
+                    text: 'Mã "' + code + '" đã được copy vào clipboard',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }).catch(function(err) {
+                alert('Copy thất bại: ' + err);
+            });
+        }
+
+        // Export to Excel
+        function exportToExcel() {
+            const table = document.getElementById('promotionTable');
+            const html = table.outerHTML;
+            const url = 'data:application/vnd.ms-excel,' + encodeURIComponent(html);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'khuyen-mai-' + new Date().getTime() + '.xls';
+            link.click();
+        }
+    </script>
+}

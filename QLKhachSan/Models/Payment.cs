@@ -19,5 +19,16 @@ public partial class Payment
 
     public string? Notes { get; set; }
 
+    public decimal? DiscountAmount { get; set; }
+
+    public string? PromotionCode { get; set; }
+
+    public virtual Promotion? Promotion { get; set; }
+
+
     public virtual Booking? Booking { get; set; }
+
+    public int? PromotionId { get; set; }
 }
+
+
