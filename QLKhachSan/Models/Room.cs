@@ -1,11 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace QLKhachSan.Models
 {
     public partial class Room
     {
-        [Key]
         public int RoomId { get; set; }
 
         [Display(Name = "Chi nhánh")]
@@ -26,8 +27,9 @@ namespace QLKhachSan.Models
         public int? Capacity { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập giá phòng")]
-        [Display(Name = "Giá phòng (VNĐ)")]
-        [DisplayFormat(DataFormatString = "{0:N0}", ApplyFormatInEditMode = false)]
+        [Display(Name = "Giá phòng")]
+        // Thuộc tính này được cấu hình trong OnModelCreating nên không cần [Column]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = false)]
         public decimal? Price { get; set; }
 
         [StringLength(300)]
@@ -43,15 +45,24 @@ namespace QLKhachSan.Models
         public string? ImageUrl { get; set; }
 
         [Display(Name = "Ngày tạo")]
-        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}", ApplyFormatInEditMode = false)]
+        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy HH:mm}", ApplyFormatInEditMode = false)]
         public DateTime? CreatedAt { get; set; }
 
-        // Navigation properties - Phải khớp với tên trong Hotel01Context
-        [ForeignKey("BranchId")]
-        public virtual HotelBranch? Branch { get; set; }
+        // --- Navigation Property ---
+        // Tên này PHẢI khớp với tên trong OnModelCreating: entity.HasOne(d => d.HotelBranch)
+        [Display(Name = "Chi nhánh khách sạn")]
+        public virtual HotelBranch? HotelBranch { get; set; }
 
-        public virtual ICollection<Booking>? Bookings { get; set; }
-        public virtual ICollection<Review>? Reviews { get; set; }
-        public virtual ICollection<RoomMaintenance>? RoomMaintenances { get; set; }
+        public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+
+        public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+
+        public virtual ICollection<RoomMaintenance> RoomMaintenances { get; set; } = new List<RoomMaintenance>();
+        [NotMapped] // Báo cho Database biết đây là biến ảo, không tạo cột trong SQL
+        public virtual HotelBranch? Branch
+        {
+            get { return HotelBranch; }
+            set { HotelBranch = value; }
+        }
     }
 }

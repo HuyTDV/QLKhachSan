@@ -15,7 +15,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
         {
             _context = context;
         }
-        
+
         // GET: Admin/Room - CÓ PHÂN TRANG
         public async Task<IActionResult> Index(
             int? branchId,
@@ -30,7 +30,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
             if (pageSize > 100) pageSize = 100;
 
             var query = _context.Rooms
-                .Include(r => r.Branch)
+                .Include(r => r.HotelBranch)
                 .AsQueryable();
 
             // Apply filters
@@ -89,7 +89,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
             }
 
             var room = await _context.Rooms
-                .Include(r => r.Branch)
+                .Include(r => r.HotelBranch)
                 .FirstOrDefaultAsync(m => m.RoomId == id);
 
             if (room == null)
@@ -201,7 +201,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
             }
 
             var room = await _context.Rooms
-                .Include(r => r.Branch)
+                .Include(r => r.HotelBranch)
                 .FirstOrDefaultAsync(m => m.RoomId == id);
 
             if (room == null)

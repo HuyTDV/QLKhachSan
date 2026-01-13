@@ -199,4 +199,23 @@
             </div>
         </div>
     </div>
+    @if (Model.Status != "Paid")
+    {
+        <form asp-action="PayAtCounter" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="bookingId" value="@Model.BookingId" />
+
+            <button type="submit" class="btn btn-success btn-block">
+                <i class="fas fa-cash-register"></i> Thanh toán tại quầy
+            </button>
+        </form>
+    }
+    <a asp-action="Qr"
+       asp-route-id="@Model.BookingId"
+       target="_blank"
+       class="btn btn-primary btn-block">
+        <i class="fas fa-qrcode"></i> QR Check-in
+    </a>
+
+
 </section>

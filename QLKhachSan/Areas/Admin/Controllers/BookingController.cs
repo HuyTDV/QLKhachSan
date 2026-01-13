@@ -12,6 +12,7 @@ using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using QLKhachSan.Models;
 using System.Drawing;
+using Microsoft.AspNetCore.Authorization;
 
 namespace QLKhachSan.Areas.Admin.Controllers
 {
@@ -28,10 +29,10 @@ namespace QLKhachSan.Areas.Admin.Controllers
         // GET: Admin/Booking - Có Filter + Pagination
         public async Task<IActionResult> Index(
             int? branchId,
-            string status,
+            string? status,
             DateOnly? fromDate,
             DateOnly? toDate,
-            string searchTerm,
+            string? searchTerm,
             int pageNumber = 1,
             int pageSize = 10)
         {
@@ -41,13 +42,13 @@ namespace QLKhachSan.Areas.Admin.Controllers
 
             var query = _context.Bookings
                 .Include(b => b.Room)
-                    .ThenInclude(r => r.Branch)
+                    .ThenInclude(r => r!.HotelBranch)
                 .Include(b => b.User)
                 .AsQueryable();
 
             // Apply filters
             if (branchId.HasValue)
-                query = query.Where(b => b.Room.BranchId == branchId.Value);
+                query = query.Where(b => b.Room!.BranchId == branchId.Value);
 
             if (!string.IsNullOrEmpty(status))
                 query = query.Where(b => b.Status == status);
@@ -95,20 +96,25 @@ namespace QLKhachSan.Areas.Admin.Controllers
             return View(bookings);
         }
 
-        // Export Excel - GIỮ NGUYÊN (không phân trang khi export)
+        // Export Excel
         [HttpGet]
-        public async Task<IActionResult> ExportExcel(int? branchId, string status, DateOnly? fromDate, DateOnly? toDate, string searchTerm)
+        public async Task<IActionResult> ExportExcel(
+            int? branchId,
+            string? status,
+            DateOnly? fromDate,
+            DateOnly? toDate,
+            string? searchTerm)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
             var query = _context.Bookings
                 .Include(b => b.Room)
-                    .ThenInclude(r => r.Branch)
+                    .ThenInclude(r => r!.HotelBranch)
                 .Include(b => b.User)
                 .AsQueryable();
 
             if (branchId.HasValue)
-                query = query.Where(b => b.Room.BranchId == branchId.Value);
+                query = query.Where(b => b.Room!.BranchId == branchId.Value);
 
             if (!string.IsNullOrEmpty(status))
                 query = query.Where(b => b.Status == status);
@@ -157,7 +163,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
                     worksheet.Cells[row, 1].Value = $"#{booking.BookingId}";
                     worksheet.Cells[row, 2].Value = booking.User?.FullName ?? "N/A";
                     worksheet.Cells[row, 3].Value = $"Phòng {booking.Room?.RoomNumber ?? "N/A"}";
-                    worksheet.Cells[row, 4].Value = booking.Room?.Branch?.BranchName ?? "N/A";
+                    worksheet.Cells[row, 4].Value = booking.Room?.HotelBranch?.BranchName ?? "N/A";
                     worksheet.Cells[row, 5].Value = booking.CheckIn?.ToString("dd/MM/yyyy");
                     worksheet.Cells[row, 6].Value = booking.CheckOut?.ToString("dd/MM/yyyy");
                     worksheet.Cells[row, 7].Value = booking.Status;
@@ -191,18 +197,23 @@ namespace QLKhachSan.Areas.Admin.Controllers
             }
         }
 
-        // Export PDF - GIỮ NGUYÊN
+        // Export PDF
         [HttpGet]
-        public async Task<IActionResult> ExportPdf(int? branchId, string status, DateOnly? fromDate, DateOnly? toDate, string searchTerm)
+        public async Task<IActionResult> ExportPdf(
+            int? branchId,
+            string? status,
+            DateOnly? fromDate,
+            DateOnly? toDate,
+            string? searchTerm)
         {
             var query = _context.Bookings
                 .Include(b => b.Room)
-                    .ThenInclude(r => r.Branch)
+                    .ThenInclude(r => r!.HotelBranch)
                 .Include(b => b.User)
                 .AsQueryable();
 
             if (branchId.HasValue)
-                query = query.Where(b => b.Room.BranchId == branchId.Value);
+                query = query.Where(b => b.Room!.BranchId == branchId.Value);
 
             if (!string.IsNullOrEmpty(status))
                 query = query.Where(b => b.Status == status);
@@ -270,7 +281,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
                     table.AddCell(new Cell().Add(new Paragraph($"#{booking.BookingId}").SetFont(font)));
                     table.AddCell(new Cell().Add(new Paragraph(booking.User?.FullName ?? "N/A").SetFont(font)));
                     table.AddCell(new Cell().Add(new Paragraph($"Phong {booking.Room?.RoomNumber ?? "N/A"}").SetFont(font)));
-                    table.AddCell(new Cell().Add(new Paragraph(booking.Room?.Branch?.BranchName ?? "N/A").SetFont(font)));
+                    table.AddCell(new Cell().Add(new Paragraph(booking.Room?.HotelBranch?.BranchName ?? "N/A").SetFont(font)));
                     table.AddCell(new Cell().Add(new Paragraph(booking.CheckIn?.ToString("dd/MM/yyyy") ?? "N/A").SetFont(font)));
                     table.AddCell(new Cell().Add(new Paragraph(booking.CheckOut?.ToString("dd/MM/yyyy") ?? "N/A").SetFont(font)));
                     table.AddCell(new Cell().Add(new Paragraph(booking.Status ?? "N/A").SetFont(font)));
@@ -295,7 +306,6 @@ namespace QLKhachSan.Areas.Admin.Controllers
             }
         }
 
-        // Các method khác giữ nguyên
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -303,6 +313,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
 
             var booking = await _context.Bookings
                 .Include(b => b.Room)
+                    .ThenInclude(r => r!.HotelBranch)
                 .Include(b => b.User)
                 .Include(b => b.Payments)
                 .FirstOrDefaultAsync(m => m.BookingId == id);
@@ -425,9 +436,6 @@ namespace QLKhachSan.Areas.Admin.Controllers
                 TempData["Success"] = "Đặt phòng thành công!";
                 return RedirectToAction(nameof(Create));
             }
-
-            var errors = ModelState.Values.SelectMany(v => v.Errors);
-            foreach (var error in errors) Console.WriteLine(">>> LỖI CÒN LẠI: " + error.ErrorMessage);
 
             LoadViewBagData(booking.RoomId, booking.UserId);
             return View(booking);
@@ -565,6 +573,61 @@ namespace QLKhachSan.Areas.Admin.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PayAtCounter(int bookingId)
+        {
+            var booking = await _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Room)
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+
+            if (booking == null)
+                return NotFound();
+
+            if (booking.Status == "Paid")
+            {
+                TempData["Info"] = "Booking này đã được thanh toán.";
+                return RedirectToAction(nameof(Details), new { id = bookingId });
+            }
+
+            booking.Status = "Paid";
+            booking.TotalPrice ??= booking.Room?.Price ?? 0;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Đã thanh toán tại quầy cho booking #{booking.BookingId}";
+            return RedirectToAction(nameof(Details), new { id = bookingId });
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CheckInByQr(int bookingId)
+        {
+            var booking = await _context.Bookings
+                .Include(b => b.Room)
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+
+            if (booking == null)
+                return NotFound();
+
+            if (booking.Status != "Paid")
+            {
+                TempData["Error"] = "Booking chưa thanh toán.";
+                return RedirectToAction("Details", new { id = bookingId });
+            }
+
+            booking.Status = "Checked-in";
+            if (booking.Room != null)
+            {
+                booking.Room.Status = "Occupied";
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Khách đã check-in thành công.";
+            return RedirectToAction("Details", new { id = bookingId });
         }
 
         private bool BookingExists(int id)

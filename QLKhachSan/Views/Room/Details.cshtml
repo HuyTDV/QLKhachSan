@@ -1,0 +1,623 @@
+﻿@model QLKhachSan.Models.Room
+
+@{
+    ViewData["Title"] = $"{Model.RoomType} - Room Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var avgRating = ViewBag.AverageRating ?? 0;
+    var totalReviews = ViewBag.TotalReviews ?? 0;
+
+    // --- XỬ LÝ ĐƯỜNG DẪN ẢNH (Giống trang Index) ---
+    // 1. Nếu DB có tên file -> Ghép với thư mục /assets/img/hotel/
+    // 2. Nếu null -> Lấy ảnh room-1.webp làm mặc định
+    string imagePath = string.IsNullOrEmpty(Model.ImageUrl)
+                       ? "/assets/img/hotel/room-1.webp"
+                       : $"/assets/img/hotel/{Model.ImageUrl}";
+}
+
+<div class="room-details-page">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Room" asp-action="Index">Rooms</a></li>
+                <li class="breadcrumb-item active">@Model.RoomType</li>
+            </ol>
+        </nav>
+
+        <div class="room-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="room-badge @GetBadgeClass(Model.RoomType)">
+                        @Model.RoomType
+                    </div>
+                    <h1 class="room-title">@Model.RoomType</h1>
+                    <p class="room-subtitle">
+                        <i class="fas fa-map-marker-alt"></i>
+                        @(Model.HotelBranch?.BranchName ?? "Main Branch") - Room #@Model.RoomNumber
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="rating-box">
+                        <div class="rating-stars">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="fas fa-star @(i <= avgRating ? "text-warning" : "text-muted")"></i>
+                            }
+                        </div>
+                        <p class="rating-text">@avgRating.ToString("0.0") out of 5 (@totalReviews reviews)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="room-gallery mb-5">
+            <div class="main-image">
+                <img src="@imagePath"
+                     alt="@Model.RoomType"
+                     class="img-fluid rounded-3"
+                     style="width: 100%; height: 500px; object-fit: cover;">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="info-section mb-4">
+                    <h2 class="section-title">About This Room</h2>
+                    <p class="room-description">
+                        Experience luxury and comfort in our @Model.RoomType. Perfect for your stay,
+                        this room offers modern amenities and a relaxing atmosphere.
+                    </p>
+                </div>
+
+                <div class="info-section mb-4">
+                    <h2 class="section-title">Room Features</h2>
+                    <div class="features-grid">
+                        @if (Model.Capacity.HasValue)
+                        {
+                            <div class="feature-card">
+                                <i class="fas fa-users feature-icon"></i>
+                                <div class="feature-info">
+                                    <h4>Capacity</h4>
+                                    <p>Up to @Model.Capacity guests</p>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="feature-card">
+                            <i class="fas fa-bed feature-icon"></i>
+                            <div class="feature-info">
+                                <h4>Room Type</h4>
+                                <p>@Model.RoomType</p>
+                            </div>
+                        </div>
+
+                        <div class="feature-card">
+                            <i class="fas fa-check-circle feature-icon"></i>
+                            <div class="feature-info">
+                                <h4>Status</h4>
+                                <p class="@(Model.Status == "Available" ? "text-success" : "text-danger")">
+                                    @Model.Status
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="feature-card">
+                            <i class="fas fa-dollar-sign feature-icon"></i>
+                            <div class="feature-info">
+                                <h4>Price</h4>
+                                <p>$@Model.Price?.ToString("N0") / night</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Amenities))
+                {
+                    <div class="info-section mb-4">
+                        <h2 class="section-title">Amenities</h2>
+                        <div class="amenities-list">
+                            @foreach (var amenity in Model.Amenities.Split(','))
+                            {
+                                <div class="amenity-item">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>@amenity.Trim()</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (Model.Reviews != null && Model.Reviews.Any())
+                {
+                    <div class="info-section mb-4">
+                        <h2 class="section-title">Guest Reviews (@totalReviews)</h2>
+                        <div class="reviews-list">
+                            @foreach (var review in Model.Reviews.Take(5))
+                            {
+                                <div class="review-card">
+                                    <div class="review-header">
+                                        <div class="reviewer-info">
+                                            <div class="reviewer-avatar">
+                                                @if (!string.IsNullOrEmpty(review.User?.Avatar))
+                                                {
+                                                    <img src="@review.User.Avatar" alt="@review.User.FullName">
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-user-circle"></i>
+                                                }
+                                            </div>
+                                            <div>
+                                                <h5>@(review.User?.FullName ?? "Anonymous")</h5>
+                                                <p class="review-date">@review.CreatedAt?.ToString("MMM dd, yyyy")</p>
+                                            </div>
+                                        </div>
+                                        <div class="review-rating">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="fas fa-star @(i <= review.Rating ? "text-warning" : "text-muted")"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                    <p class="review-comment">@review.Comment</p>
+                                    @if (!string.IsNullOrEmpty(review.Reply))
+                                    {
+                                        <div class="hotel-reply">
+                                            <strong>Hotel Response:</strong>
+                                            <p>@review.Reply</p>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="col-lg-4">
+                <div class="booking-card sticky-top">
+                    <div class="price-section">
+                        <span class="price-label">Price per night</span>
+                        <h2 class="price-amount">$@Model.Price?.ToString("N0")</h2>
+                    </div>
+
+                    <div class="booking-form">
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <div class="status-badge @(Model.Status == "Available" ? "status-available" : "status-unavailable")">
+                                <i class="fas @(Model.Status == "Available" ? "fa-check-circle" : "fa-times-circle")"></i>
+                                @Model.Status
+                            </div>
+                        </div>
+
+                        @if (Model.Status == "Available")
+                        {
+                            <a asp-action="Book" asp-route-id="@Model.RoomId" class="btn btn-book btn-lg w-100">
+                                <i class="fas fa-calendar-check"></i> Book This Room
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="btn btn-secondary btn-lg w-100" disabled>
+                                <i class="fas fa-ban"></i> Not Available
+                            </button>
+                        }
+                    </div>
+
+                    <div class="booking-info mt-4">
+                        <h5>Booking Information</h5>
+                        <ul>
+                            <li><i class="fas fa-clock"></i> Check-in: 2:00 PM</li>
+                            <li><i class="fas fa-clock"></i> Check-out: 12:00 PM</li>
+                            <li><i class="fas fa-ban-smoking"></i> Non-smoking</li>
+                            <li><i class="fas fa-concierge-bell"></i> 24/7 Room Service</li>
+                        </ul>
+                    </div>
+
+                    @if (Model.HotelBranch != null)
+                    {
+                        <div class="contact-info mt-4">
+                            <h5>Contact</h5>
+                            <p><i class="fas fa-phone"></i> @Model.HotelBranch.Phone</p>
+                            <p><i class="fas fa-map-marker-alt"></i> @Model.HotelBranch.Address</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetBadgeClass(string roomType)
+    {
+        if (string.IsNullOrEmpty(roomType)) return "badge-default";
+
+        if (roomType.Contains("Ocean")) return "badge-ocean";
+        if (roomType.Contains("Business")) return "badge-business";
+        if (roomType.Contains("Family")) return "badge-family";
+        if (roomType.Contains("Romantic")) return "badge-romantic";
+        if (roomType.Contains("City")) return "badge-city";
+        if (roomType.Contains("Premium")) return "badge-premium";
+        if (roomType.Contains("Suite")) return "badge-premium";
+
+        return "badge-default";
+    }
+}
+
+<style>
+    .room-details-page {
+        background-color: #1a1a1a;
+        min-height: 100vh;
+        padding: 40px 0;
+        color: #ffffff;
+    }
+
+    .breadcrumb {
+        background: none;
+        margin-bottom: 30px;
+    }
+
+    .breadcrumb-item a {
+        color: #4CAF50;
+        text-decoration: none;
+    }
+
+    .breadcrumb-item.active {
+        color: #cccccc;
+    }
+
+    .room-header {
+        margin-bottom: 30px;
+    }
+
+    .room-badge {
+        display: inline-block;
+        padding: 8px 20px;
+        border-radius: 25px;
+        font-weight: bold;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+        color: white;
+    }
+
+    .badge-ocean {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .badge-business {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .badge-family {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .badge-romantic {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+
+    .badge-city {
+        background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+    }
+
+    .badge-premium {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        color: #333;
+    }
+
+    .badge-default {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    }
+
+    .room-title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .room-subtitle {
+        color: #cccccc;
+        font-size: 1.1rem;
+    }
+
+    .rating-box {
+        background-color: #2a2a2a;
+        padding: 20px;
+        border-radius: 10px;
+        display: inline-block;
+    }
+
+    .rating-stars i {
+        font-size: 1.2rem;
+        margin: 0 2px;
+    }
+
+    .rating-text {
+        margin-top: 10px;
+        color: #cccccc;
+        font-size: 0.95rem;
+        margin-bottom: 0;
+    }
+
+    .room-gallery .main-image {
+        width: 100%;
+        height: 500px;
+        overflow: hidden;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+        .room-gallery .main-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .info-section {
+        background-color: #2a2a2a;
+        padding: 30px;
+        border-radius: 15px;
+        border: 1px solid #3a3a3a;
+    }
+
+    .section-title {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #4CAF50;
+        border-bottom: 2px solid #3a3a3a;
+        padding-bottom: 10px;
+    }
+
+    .room-description {
+        color: #cccccc;
+        line-height: 1.8;
+        font-size: 1.05rem;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .feature-card {
+        background-color: #1a1a1a;
+        padding: 20px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: transform 0.3s ease;
+        border: 1px solid #3a3a3a;
+    }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: #4CAF50;
+        }
+
+    .feature-icon {
+        font-size: 2rem;
+        color: #4CAF50;
+    }
+
+    .feature-info h4 {
+        font-size: 1.1rem;
+        margin-bottom: 5px;
+        color: #ffffff;
+    }
+
+    .feature-info p {
+        margin: 0;
+        color: #cccccc;
+        font-size: 0.95rem;
+    }
+
+    .amenities-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+    }
+
+    .amenity-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 15px;
+        background-color: #1a1a1a;
+        border-radius: 8px;
+        border: 1px solid #3a3a3a;
+    }
+
+        .amenity-item i {
+            color: #4CAF50;
+            font-size: 1.1rem;
+        }
+
+        .amenity-item span {
+            color: #cccccc;
+        }
+
+    .review-card {
+        background-color: #1a1a1a;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #3a3a3a;
+    }
+
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .reviewer-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .reviewer-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        overflow: hidden;
+        background-color: #2a2a2a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #4CAF50;
+    }
+
+        .reviewer-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .reviewer-avatar i {
+            font-size: 2rem;
+            color: #4CAF50;
+        }
+
+    .reviewer-info h5 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: white;
+    }
+
+    .review-date {
+        margin: 0;
+        color: #999999;
+        font-size: 0.9rem;
+    }
+
+    .review-comment {
+        color: #cccccc;
+        line-height: 1.6;
+    }
+
+    .hotel-reply {
+        background-color: #222;
+        padding: 15px;
+        border-left: 3px solid #4CAF50;
+        margin-top: 15px;
+        border-radius: 5px;
+    }
+
+        .hotel-reply strong {
+            color: #4CAF50;
+        }
+
+        .hotel-reply p {
+            margin: 10px 0 0 0;
+            color: #cccccc;
+        }
+
+    .booking-card {
+        background-color: #2a2a2a;
+        padding: 30px;
+        border-radius: 15px;
+        position: sticky;
+        top: 100px;
+        border: 1px solid #3a3a3a;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    }
+
+    .price-section {
+        text-align: center;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #3a3a3a;
+        margin-bottom: 20px;
+    }
+
+    .price-label {
+        color: #999999;
+        font-size: 0.9rem;
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    .price-amount {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #4CAF50;
+        margin: 0;
+    }
+
+    .status-badge {
+        padding: 12px 20px;
+        border-radius: 10px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .status-available {
+        background-color: rgba(76, 175, 80, 0.1);
+        color: #4CAF50;
+        border: 1px solid #4CAF50;
+    }
+
+    .status-unavailable {
+        background-color: rgba(244, 67, 54, 0.1);
+        color: #f44336;
+        border: 1px solid #f44336;
+    }
+
+    .btn-book {
+        background: #4CAF50;
+        border: none;
+        padding: 15px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #ffffff;
+        transition: all 0.3s ease;
+    }
+
+        .btn-book:hover {
+            background: #45a049;
+            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
+            transform: translateY(-2px);
+            color: #ffffff;
+        }
+
+    .booking-info h5,
+    .contact-info h5 {
+        color: #4CAF50;
+        margin-bottom: 15px;
+        font-size: 1.2rem;
+    }
+
+    .booking-info ul,
+    .contact-info p {
+        list-style: none;
+        padding: 0;
+        color: #cccccc;
+    }
+
+    .booking-info li {
+        padding: 8px 0;
+        border-bottom: 1px solid #3a3a3a;
+    }
+
+        .booking-info li:last-child {
+            border-bottom: none;
+        }
+
+    .booking-info i,
+    .contact-info i {
+        color: #4CAF50;
+        margin-right: 10px;
+        width: 20px;
+    }
+
+    .contact-info p {
+        padding: 8px 0;
+    }
+</style>

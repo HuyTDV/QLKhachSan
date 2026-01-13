@@ -42,7 +42,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
 
             var query = _context.Reviews
                 .Include(r => r.Room)
-                    .ThenInclude(room => room.Branch)
+                    .ThenInclude(room => room.HotelBranch)
                 .Include(r => r.User)
                 .AsQueryable();
 
@@ -99,7 +99,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
             // Calculate statistics (on filtered data, not paginated)
             var allFilteredReviews = await _context.Reviews
                 .Include(r => r.Room)
-                    .ThenInclude(room => room.Branch)
+                    .ThenInclude(room => room.HotelBranch)
                 .Include(r => r.User)
                 .Where(r => query.Select(q => q.ReviewId).Contains(r.ReviewId))
                 .ToListAsync();
@@ -128,7 +128,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
             ViewBag.PageSize = pageSize;
             ViewBag.TotalItems = totalItems;
             ViewBag.TotalPages = totalPages;
-            
+
 
             return View(reviews);
         }
@@ -161,7 +161,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
 
             var query = _context.Reviews
                 .Include(r => r.Room)
-                    .ThenInclude(room => room.Branch)
+                    .ThenInclude(room => room.HotelBranch)
                 .Include(r => r.User)
                 .AsQueryable();
 
@@ -273,7 +273,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
         {
             var query = _context.Reviews
                 .Include(r => r.Room)
-                    .ThenInclude(room => room.Branch)
+                    .ThenInclude(room => room.HotelBranch)
                 .Include(r => r.User)
                 .AsQueryable();
 

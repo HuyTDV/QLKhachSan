@@ -1,0 +1,36 @@
+﻿@model List<QLKhachSan.Models.Booking>
+
+<h2>Lịch sử đặt phòng</h2>
+
+@foreach (var b in Model)
+{
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Phòng: @b.Room?.RoomNumber</h5>
+
+            <p>Ngày: @b.CheckIn → @b.CheckOut</p>
+            <p>Dịch vụ: @b.ServicesUsed</p>
+            <p>Tổng tiền: @b.TotalPrice?.ToString("N0") VND</p>
+            <p>
+                Trạng thái:
+                <strong>@b.Status</strong>
+            </p>
+
+            <a asp-action="Detail"
+               asp-route-id="@b.BookingId"
+               class="btn btn-primary btn-sm">
+                Chi tiết
+            </a>
+
+            @if (b.Status == "Paid")
+            {
+                <a asp-action="Qr"
+                   asp-controller="Qr"
+                   asp-route-id="@b.BookingId"
+                   class="btn btn-success btn-sm">
+                    Mã QR
+                </a>
+            }
+        </div>
+    </div>
+}

@@ -82,7 +82,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
                     .ThenInclude(b => b.User)
                 .Include(p => p.Booking)
                     .ThenInclude(b => b.Room)
-                        .ThenInclude(r => r.Branch)
+                        .ThenInclude(r => r.HotelBranch)
                 .Include(p => p.Promotion) // THÊM: Load promotion
                 .FirstOrDefaultAsync(m => m.PaymentId == id);
 

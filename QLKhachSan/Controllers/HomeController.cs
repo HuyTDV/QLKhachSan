@@ -1,9 +1,11 @@
-using System.Diagnostics;
-using QLKhachSan.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QLKhachSan.Models;
+using System.Diagnostics;
 
 namespace QLKhachSan.Controllers
 {
+    [AllowAnonymous]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

@@ -1,0 +1,148 @@
+﻿@model IEnumerable<QLKhachSan.Models.Room>
+
+@{
+    ViewData["Title"] = "Rooms";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="rooms-page">
+    <div class="page-header">
+        <h1>Rooms</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a asp-controller="Home" asp-action="Index">Home</a>
+                </li>
+                <li class="breadcrumb-item active">Rooms</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="filters-section">
+        <form method="get" asp-action="Index" class="filter-form">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label>Price Range</label>
+                    <select name="priceRange" class="form-select">
+                        <option value="">All Prices</option>
+                        <option value="0-100" selected="@(ViewBag.PriceRange == "0-100")">$0 - $100</option>
+                        <option value="100-200" selected="@(ViewBag.PriceRange == "100-200")">$100 - $200</option>
+                        <option value="200-300" selected="@(ViewBag.PriceRange == "200-300")">$200 - $300</option>
+                        <option value="300-500" selected="@(ViewBag.PriceRange == "300-500")">$300+</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label>Guest Capacity</label>
+                    <select name="capacity" class="form-select">
+                        <option value="">All Capacities</option>
+                        <option value="1" selected="@(ViewBag.Capacity == 1)">1+ Guests</option>
+                        <option value="2" selected="@(ViewBag.Capacity == 2)">2+ Guests</option>
+                        <option value="4" selected="@(ViewBag.Capacity == 4)">4+ Guests</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label>View Type</label>
+                    <select name="viewType" class="form-select">
+                        <option value="">All Views</option>
+                        <option value="Ocean View" selected="@(ViewBag.ViewType == "Ocean View")">Ocean View</option>
+                        <option value="Garden View" selected="@(ViewBag.ViewType == "Garden View")">Garden View</option>
+                        <option value="City View" selected="@(ViewBag.ViewType == "City View")">City View</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label>Sort By</label>
+                    <select name="sortBy" class="form-select">
+                        <option value="">Default</option>
+                        <option value="price_asc" selected="@(ViewBag.SortBy == "price_asc")">Price: Low to High</option>
+                        <option value="price_desc" selected="@(ViewBag.SortBy == "price_desc")">Price: High to Low</option>
+                        <option value="capacity" selected="@(ViewBag.SortBy == "capacity")">Capacity</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    <a asp-action="Index" class="btn btn-secondary">Clear Filters</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="rooms-grid mt-5">
+        <div class="row g-4">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var room in Model)
+                {
+                    // XỬ LÝ ĐƯỜNG DẪN ẢNH
+                    // Nếu DB có tên file -> ghép với đường dẫn thư mục assets
+                    // Nếu không -> dùng ảnh mặc định
+                    string imagePath = string.IsNullOrEmpty(room.ImageUrl)
+                    ? "/assets/img/hotel/room-1.webp"
+                    : $"/assets/img/hotel/{room.ImageUrl}";
+
+                    <div class="col-lg-4 col-md-6">
+                        <div class="room-card">
+                            @if (!string.IsNullOrEmpty(room.RoomType))
+                            {
+                                <div class="room-badge @GetBadgeClass(room.RoomType)">
+                                    @room.RoomType
+                                </div>
+                            }
+
+                            <div class="room-image">
+                                <img src="@imagePath"
+                                     class="img-fluid"
+                                     alt="@room.RoomType"
+                                     style="width: 100%; height: 250px; object-fit: cover; border-radius: 8px;" />
+                            </div>
+
+                            <div class="room-content mt-3">
+                                <h3 class="room-title">@room.RoomType</h3>
+
+                                <p class="room-description text-muted">
+                                    Room #@room.RoomNumber - @(room.HotelBranch?.BranchName ?? "Main Branch")
+                                </p>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="room-price">
+                                        <span class="price-amount fw-bold text-primary">$@room.Price?.ToString("N0")</span>
+                                        <span class="price-period text-muted">/night</span>
+                                    </div>
+
+                                    <a asp-action="Details"
+                                       asp-route-id="@room.RoomId"
+                                       class="btn btn-outline-primary btn-sm">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center">
+                    <div class="alert alert-info">
+                        No rooms available matching your criteria.
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetBadgeClass(string roomType)
+    {
+        if (string.IsNullOrEmpty(roomType)) return "badge-default";
+        if (roomType.Contains("Ocean")) return "bg-info text-white";
+        if (roomType.Contains("Family")) return "bg-success text-white";
+        if (roomType.Contains("City")) return "bg-warning text-dark";
+        if (roomType.Contains("Deluxe")) return "bg-primary text-white";
+        return "bg-secondary text-white p-1 rounded";
+    }
+}

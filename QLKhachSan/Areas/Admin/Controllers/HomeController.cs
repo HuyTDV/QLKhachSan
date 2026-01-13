@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using QLKhachSan.Areas.Admin.Models;
 using QLKhachSan.Models;
 using System.Globalization;
+using Microsoft.AspNetCore.Authorization;
 
 namespace QLKhachSan.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class HomeController : Controller
     {
         private readonly Hotel01Context _context;

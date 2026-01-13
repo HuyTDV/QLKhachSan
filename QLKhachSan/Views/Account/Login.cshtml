@@ -1,0 +1,121 @@
+﻿@model QLKhachSan.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<style>
+    /* Dùng lại style cho đồng bộ */
+    .auth-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #1f4037, #99f2c8);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .auth-box {
+        background: #ffffff;
+        padding: 35px 40px;
+        width: 400px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .auth-box h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        color: #1f4037;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+    }
+
+    .form-group input:focus {
+        border-color: #1f4037;
+        outline: none;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 6px;
+        background: #1f4037;
+        color: #fff;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .btn-submit:hover {
+        background: #145a4f;
+    }
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 15px;
+    }
+
+    .auth-footer a {
+        color: #1f4037;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .auth-footer a:hover {
+        text-decoration: underline;
+    }
+
+    .error-message {
+        color: red;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+</style>
+
+<div class="auth-container">
+    <div class="auth-box">
+        <h2>Đăng nhập</h2>
+
+        @if (ViewBag.Message != null)
+        {
+            <div class="error-message">@ViewBag.Message</div>
+        }
+
+        <form asp-action="Login" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label>Tên đăng nhập</label>
+                <input asp-for="Username" placeholder="Tên đăng nhập" />
+            </div>
+
+            <div class="form-group">
+                <label>Mật khẩu</label>
+                <input asp-for="Password" type="password" placeholder="Mật khẩu" />
+            </div>
+
+            <button type="submit" class="btn-submit">Đăng nhập</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Chưa có tài khoản?
+                <a asp-action="Register">Đăng ký ngay</a>
+            </p>
+        </div>
+    </div>
+</div>

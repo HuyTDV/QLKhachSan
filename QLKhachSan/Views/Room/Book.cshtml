@@ -1,0 +1,593 @@
+﻿@model QLKhachSan.Models.Room
+
+@{
+    ViewData["Title"] = $"Book {Model.RoomType}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="booking-page">
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Room" asp-action="Index">Rooms</a></li>
+                <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.RoomId">@Model.RoomType</a></li>
+                <li class="breadcrumb-item active">Book Room</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <!-- Booking Form -->
+            <div class="col-lg-8">
+                <div class="booking-form-container">
+                    <h1 class="page-title">Complete Your Booking</h1>
+                    <p class="page-subtitle">Fill in the details below to book your room</p>
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <i class="fas fa-exclamation-circle"></i>
+                            @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Book" method="post" id="bookingForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.RoomId" />
+
+                        <!-- Check-in & Check-out -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-calendar-alt"></i> Booking Dates
+                            </h3>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="checkIn" class="form-label">Check-in Date *</label>
+                                    <input type="date"
+                                           class="form-control"
+                                           id="checkIn"
+                                           name="checkIn"
+                                           required
+                                           min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                                           onchange="calculateTotal()">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="checkOut" class="form-label">Check-out Date *</label>
+                                    <input type="date"
+                                           class="form-control"
+                                           id="checkOut"
+                                           name="checkOut"
+                                           required
+                                           min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")"
+                                           onchange="calculateTotal()">
+                                </div>
+                            </div>
+                            <div class="booking-summary mt-3">
+                                <p><strong>Number of Nights:</strong> <span id="nightsCount">0</span></p>
+                                <p><strong>Price per Night:</strong> $@Model.Price</p>
+                            </div>
+                        </div>
+
+                        <!-- Guest Information -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-user"></i> Guest Information
+                            </h3>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="guestName" class="form-label">Full Name *</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="guestName"
+                                           placeholder="John Doe"
+                                           required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="guestEmail" class="form-label">Email *</label>
+                                    <input type="email"
+                                           class="form-control"
+                                           id="guestEmail"
+                                           placeholder="john@example.com"
+                                           required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="guestPhone" class="form-label">Phone Number *</label>
+                                    <input type="tel"
+                                           class="form-control"
+                                           id="guestPhone"
+                                           placeholder="+1 234 567 8900"
+                                           required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="guestCount" class="form-label">Number of Guests *</label>
+                                    <select class="form-select" id="guestCount" required>
+                                        @for (int i = 1; i <= (Model.Capacity ?? 4); i++)
+                                        {
+                                            <option value="@i">@i @(i == 1 ? "Guest" : "Guests")</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Services -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-concierge-bell"></i> Additional Services
+                            </h3>
+                            <div class="services-list">
+                                <div class="service-item">
+                                    <input type="checkbox" id="service1" name="servicesUsed" value="Airport Pickup">
+                                    <label for="service1">
+                                        <i class="fas fa-taxi"></i>
+                                        <div>
+                                            <strong>Airport Pickup</strong>
+                                            <span>$50</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="service-item">
+                                    <input type="checkbox" id="service2" name="servicesUsed" value="Breakfast">
+                                    <label for="service2">
+                                        <i class="fas fa-utensils"></i>
+                                        <div>
+                                            <strong>Breakfast Included</strong>
+                                            <span>$20/day</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="service-item">
+                                    <input type="checkbox" id="service3" name="servicesUsed" value="Spa">
+                                    <label for="service3">
+                                        <i class="fas fa-spa"></i>
+                                        <div>
+                                            <strong>Spa Package</strong>
+                                            <span>$100</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="service-item">
+                                    <input type="checkbox" id="service4" name="servicesUsed" value="Late Checkout">
+                                    <label for="service4">
+                                        <i class="fas fa-clock"></i>
+                                        <div>
+                                            <strong>Late Checkout</strong>
+                                            <span>$30</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Special Requests -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-comment-alt"></i> Special Requests
+                            </h3>
+                            <textarea class="form-control"
+                                      id="specialRequests"
+                                      rows="4"
+                                      placeholder="Any special requests or requirements? (Optional)"></textarea>
+                        </div>
+
+                        <!-- Terms & Conditions -->
+                        <div class="form-section">
+                            <div class="form-check">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       id="agreeTerms"
+                                       required>
+                                <label class="form-check-label" for="agreeTerms">
+                                    I agree to the <a href="#" class="text-success">Terms & Conditions</a>
+                                    and <a href="#" class="text-success">Cancellation Policy</a>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="form-actions">
+                            <a asp-action="Details" asp-route-id="@Model.RoomId" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-arrow-left"></i> Back to Room
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-check-circle"></i> Confirm Booking
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Booking Summary Sidebar -->
+            <div class="col-lg-4">
+                <div class="booking-summary-card sticky-top">
+                    <h3>Booking Summary</h3>
+
+                    <!-- Room Details -->
+                    <div class="summary-room">
+                        <img src="@(!string.IsNullOrEmpty(Model.ImageUrl) ? Model.ImageUrl : "/images/room-default.jpg")"
+                             alt="@Model.RoomType"
+                             class="img-fluid rounded">
+                        <h4>@Model.RoomType</h4>
+                        <p><i class="fas fa-map-marker-alt"></i> @(Model.HotelBranch?.BranchName ?? "Main Branch")</p>
+                        <p><i class="fas fa-door-open"></i> Room #@Model.RoomNumber</p>
+                    </div>
+
+                    <!-- Price Breakdown -->
+                    <div class="summary-pricing">
+                        <div class="price-row">
+                            <span>Room Rate</span>
+                            <span>$@Model.Price x <span id="nightsDisplay">0</span> nights</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Subtotal</span>
+                            <span id="subtotal">$0</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Service Fee</span>
+                            <span>$10</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Tax (10%)</span>
+                            <span id="tax">$0</span>
+                        </div>
+                        <div class="price-row total">
+                            <strong>Total</strong>
+                            <strong id="totalPrice">$0</strong>
+                        </div>
+                    </div>
+
+                    <!-- Contact Info -->
+                    <div class="summary-contact">
+                        <h5><i class="fas fa-headset"></i> Need Help?</h5>
+                        <p>Call us at: @(Model.HotelBranch?.Phone ?? "1-800-HOTEL")</p>
+                        <p>Available 24/7</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const roomPrice = @Model.Price;
+
+    function calculateTotal() {
+        const checkIn = document.getElementById('checkIn').value;
+        const checkOut = document.getElementById('checkOut').value;
+
+        if (checkIn && checkOut) {
+            const date1 = new Date(checkIn);
+            const date2 = new Date(checkOut);
+            const diffTime = Math.abs(date2 - date1);
+            const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (nights > 0) {
+                document.getElementById('nightsCount').textContent = nights;
+                document.getElementById('nightsDisplay').textContent = nights;
+
+                const subtotal = roomPrice * nights;
+                const serviceFee = 10;
+                const tax = (subtotal + serviceFee) * 0.1;
+                const total = subtotal + serviceFee + tax;
+
+                document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+                document.getElementById('tax').textContent = '$' + tax.toFixed(2);
+                document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
+            }
+        }
+    }
+
+    // Set minimum check-out date based on check-in
+    document.getElementById('checkIn').addEventListener('change', function() {
+        const checkInDate = new Date(this.value);
+        checkInDate.setDate(checkInDate.getDate() + 1);
+        document.getElementById('checkOut').min = checkInDate.toISOString().split('T')[0];
+    });
+</script>
+
+<style>
+    /* --- CÁC PHẦN CSS CƠ BẢN GIỮ NGUYÊN --- */
+    .booking-page {
+        background-color: #1a1a1a;
+        min-height: 100vh;
+        padding: 40px 0;
+        color: #ffffff;
+    }
+
+    .breadcrumb-item a {
+        color: #4CAF50;
+        text-decoration: none;
+    }
+
+    .breadcrumb-item.active {
+        color: #cccccc;
+    }
+
+    .booking-form-container {
+        background-color: #2a2a2a;
+        padding: 40px;
+        border-radius: 15px;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #4CAF50;
+    }
+
+    .page-subtitle {
+        color: #cccccc;
+        margin-bottom: 30px;
+        font-size: 1.1rem;
+    }
+
+    .form-section {
+        background-color: #1a1a1a;
+        padding: 25px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .section-title i {
+            color: #4CAF50;
+        }
+
+    .form-label {
+        color: #cccccc;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    .form-control, .form-select {
+        background-color: #2a2a2a;
+        border: 1px solid #3a3a3a;
+        color: #ffffff;
+        padding: 12px;
+        border-radius: 8px;
+    }
+
+        .form-control:focus, .form-select:focus {
+            background-color: #2a2a2a;
+            border-color: #4CAF50;
+            color: #ffffff;
+            box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+        }
+
+    .booking-summary {
+        background-color: #2a2a2a;
+        padding: 15px;
+        border-radius: 8px;
+        color: #cccccc;
+    }
+
+        .booking-summary p {
+            margin: 8px 0;
+        }
+
+    .services-list {
+        display: grid;
+        gap: 15px;
+    }
+
+    .service-item {
+        background-color: #2a2a2a;
+        border-radius: 8px;
+        padding: 15px;
+        transition: all 0.3s ease;
+    }
+
+        .service-item label {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            margin: 0;
+        }
+
+            .service-item label i {
+                font-size: 1.8rem;
+                color: #4CAF50;
+            }
+
+            .service-item label div {
+                flex: 1;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .service-item label strong {
+                color: #ffffff;
+            }
+
+            .service-item label span {
+                color: #4CAF50;
+                font-weight: 600;
+            }
+
+        .service-item input[type="checkbox"] {
+            display: none;
+        }
+
+            .service-item input[type="checkbox"]:checked + label {
+                background-color: rgba(76, 175, 80, 0.1);
+                border: 2px solid #4CAF50;
+                border-radius: 8px;
+                padding: 13px;
+                margin: -2px;
+            }
+
+    .form-check-input {
+        background-color: #2a2a2a;
+        border-color: #3a3a3a;
+    }
+
+        .form-check-input:checked {
+            background-color: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+    .form-check-label {
+        color: #cccccc;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        margin-top: 30px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
+            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
+            transform: translateY(-2px);
+        }
+
+    .btn-secondary {
+        background-color: #3a3a3a;
+        border: none;
+        color: #ffffff;
+        padding: 12px 30px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-secondary:hover {
+            background-color: #4a4a4a;
+        }
+
+    /* --- PHẦN QUAN TRỌNG ĐÃ SỬA (Lưu ý kỹ phần này) --- */
+    .booking-summary-card {
+        background-color: #2a2a2a;
+        padding: 30px;
+        border-radius: 15px;
+        /* 1. Sticky Position: Để nó trượt theo */
+        position: -webkit-sticky;
+        position: sticky;
+        /* 2. Tăng Top lên 130px: Để tránh đụng Menu Header (vì Menu của bạn khá cao) */
+        top: 130px;
+        /* 3. Giảm Z-Index xuống thấp: Để nó CHÌM XUỐNG dưới Menu Top và Footer */
+        z-index: 1;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+        /* -------------------------------------------------- */
+
+        .booking-summary-card h3 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 25px;
+        }
+
+    .summary-room {
+        margin-bottom: 25px;
+        padding-bottom: 25px;
+        border-bottom: 1px solid #3a3a3a;
+    }
+
+        .summary-room img {
+            margin-bottom: 15px;
+            border-radius: 10px;
+        }
+
+        .summary-room h4 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        .summary-room p {
+            color: #cccccc;
+            margin: 5px 0;
+        }
+
+        .summary-room i {
+            color: #4CAF50;
+            margin-right: 8px;
+        }
+
+    .summary-pricing {
+        margin-bottom: 25px;
+        padding-bottom: 25px;
+        border-bottom: 1px solid #3a3a3a;
+    }
+
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        color: #cccccc;
+    }
+
+        .price-row.total {
+            border-top: 2px solid #4CAF50;
+            padding-top: 15px;
+            margin-top: 10px;
+            font-size: 1.3rem;
+            color: #ffffff;
+        }
+
+            .price-row.total strong:last-child {
+                color: #4CAF50;
+            }
+
+    .summary-contact {
+        background-color: #1a1a1a;
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+        .summary-contact h5 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+            .summary-contact h5 i {
+                margin-right: 8px;
+            }
+
+        .summary-contact p {
+            color: #cccccc;
+            margin: 5px 0;
+        }
+
+    .alert {
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 25px;
+    }
+
+    .alert-danger {
+        background-color: rgba(244, 67, 54, 0.2);
+        border: 1px solid #f44336;
+        color: #ffffff;
+    }
+
+    .text-success {
+        color: #4CAF50 !important;
+    }
+</style>

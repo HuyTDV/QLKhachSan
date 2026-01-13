@@ -1,32 +1,51 @@
 ﻿using QLKhachSan.Models;
-using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation;
 using Microsoft.EntityFrameworkCore;
-using QLKhachSan.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Cấu hình DbContext với SQL Server
-builder.Services.AddDbContext<Hotel01Context>(option =>
+// ===== DB CONTEXT =====
+builder.Services.AddDbContext<Hotel01Context>(options =>
 {
-    option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
-// Add services to the container.
-builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
+// ===== MVC =====
+builder.Services.AddControllersWithViews()
+    .AddRazorRuntimeCompilation();
 
-// Thêm Session cho login/logout sau này
+// ===== AUTHENTICATION =====
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/Login";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        options.SlidingExpiration = true;
+    });
+
+// ===== AUTHORIZATION: BẮT BUỘC LOGIN TOÀN SITE =====
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
+
+// ===== SESSION (PHỤ – UI) =====
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
-
-builder.Services.AddScoped<AiChatService>();
-
+builder.Services.AddHttpContextAccessor();
+// ===== CHATBOT SERVICE =====
+builder.Services.AddScoped<QLKhachSan.Services.AiChatService>();
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ===== PIPELINE =====
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -38,16 +57,16 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseSession(); // Thêm middleware session
-
+app.UseSession();
+app.UseAuthentication();
 app.UseAuthorization();
 
-// Route cho Areas (Admin)
+// ===== ROUTE AREA =====
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-// Route mặc định
+// ===== ROUTE MẶC ĐỊNH =====
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

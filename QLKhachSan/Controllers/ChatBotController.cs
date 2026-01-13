@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using QLKhachSan.Services;
 
 namespace QLKhachSan.Controllers
 {
+    [AllowAnonymous]
     public class ChatController : Controller
     {
         private readonly AiChatService _aiChatService;
