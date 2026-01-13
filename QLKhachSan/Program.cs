@@ -15,6 +15,10 @@ builder.Services.AddDbContext<Hotel01Context>(options =>
 builder.Services.AddControllersWithViews()
     .AddRazorRuntimeCompilation();
 
+
+builder.Services.AddSession();
+
+
 // ===== AUTHENTICATION =====
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -70,5 +74,8 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+
+app.UseSession();
 
 app.Run();

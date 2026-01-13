@@ -15,7 +15,7 @@ namespace QLKhachSan.Areas.Admin.Controllers
             _context = context;
         }
 
-        // GET: Admin/BlogPost - CÓ PHÂN TRANG
+       //PHÂN TRANG
         public async Task<IActionResult> Index(
             int? authorId,
             string searchTerm,

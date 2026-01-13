@@ -13,59 +13,108 @@ namespace QLKhachSan.Services
         private readonly string _geminiApiKey;
         private readonly string _geminiApiUrl;
 
-        // Cấu trúc Database (Schema)
-        private const string DbSchema = @"
-        Bạn là chuyên gia SQL. Database khách sạn Grandora:
-        
-        1. BẢNG DỮ LIỆU:
-        - Rooms(RoomId, RoomNumber, BranchId, RoomType, Capacity, Price, Amenities, Status, ImageUrl)
-          + Status: 'Available', 'Booked', 'Maintenance'
-        - HotelBranches(BranchId, BranchName, City)
-        - Bookings(BookingId, UserId, RoomId, CheckIn, CheckOut, TotalPrice, Status)
+        // --- BỘ NHỚ TẠM (Chỉ khai báo 1 lần duy nhất, KHÔNG trùng lặp) ---
+        private static Dictionary<string, List<string>> _chatHistory = new();
 
-        QUY TẮC SQL (BẮT BUỘC):
-        1. Chỉ trả về 1 câu lệnh SELECT. Không giải thích. Không Markdown.
-        2. Nếu tìm phòng, LUÔN LUÔN lấy các cột: RoomId, RoomNumber, RoomType, Price, ImageUrl, Amenities.
-        3. Tìm phòng trống phải có điều kiện: Status = 'Available'.
+        // --- SCHEMA DATABASE ĐẦY ĐỦ ---
+        private const string DbSchema = @"
+        Bạn là chuyên gia SQL và Lễ tân khách sạn Grandora.
         
-        4. QUAN TRỌNG NHẤT: Nếu câu hỏi là xã giao (Ví dụ: 'hi', 'xin chào', 'bạn là ai', 'cảm ơn') HOẶC câu hỏi không cần tra cứu dữ liệu (Ví dụ: 'tư vấn cho tôi', 'khách sạn có đẹp không') -> HÃY TRẢ VỀ DUY NHẤT CHỮ: NO_SQL
+        1. DATABASE SCHEMA:
+        - Rooms(RoomId, BranchId, RoomNumber, RoomType, Capacity, Price, Amenities, Status, ImageUrl)
+          + Status: 'Available' (Trống), 'Booked' (Đã đặt), 'Maintenance' (Bảo trì).
+        - HotelBranches(BranchId, HotelId, BranchName, Address, City, Country, Phone, ImageUrl)
+        - Hotels(HotelId, HotelName, Rating, Description, Hotline, Email)
+        - Bookings(BookingId, UserId, RoomId, CheckIn, CheckOut, TotalPrice, Status, ServicesUsed)
+        - Payments(PaymentId, BookingId, Amount, PaymentMethod, TransactionCode, PaidAt, PromotionCode)
+        - Users(UserId, FullName, Username, Email, Phone, Role, Address)
+        - Services(ServiceId, ServiceName, Description, Price, ImageUrl)
+        - Promotions(PromotionId, Code, Description, DiscountPercent, StartDate, EndDate)
+        - Reviews(ReviewId, UserId, RoomId, Rating, Comment, Reply)
+        - BlogPosts(PostId, Title, Content, AuthorId, ImageUrl)
+        - Galleries(GalleryId, Title, ImageUrl, HotelId)
+        - Menus(MenuId, MenuName, Url, Icon, Role, ImageUrl)
+        - RoomMaintenance(MaintenanceId, RoomId, Description, MaintenanceDate, Status)
+
+        LIÊN KẾT: Rooms.BranchId = HotelBranches.BranchId | Bookings.RoomId = Rooms.RoomId
+
+        2. QUY TẮC SQL (BẮT BUỘC):
+        - Chỉ trả về 1 lệnh SELECT.
+        - Tìm phòng LUÔN lấy: RoomId, RoomNumber, RoomType, Price, ImageUrl, Amenities.
+        - Tìm phòng trống phải có: Rooms.Status = 'Available'.
+        
+        3. QUY TẮC NO_SQL (QUAN TRỌNG):
+        - Nếu câu hỏi là Xã giao (hi, chào) HOẶC Hỏi lịch trình du lịch/ăn uống -> Trả về: NO_SQL
+        - LƯU Ý ĐẶC BIỆT: Nếu khách nhờ tư vấn (VD: 'nên đặt phòng nào', 'gợi ý phòng', 'có phòng nào hợp không') -> KHÔNG ĐƯỢC trả về NO_SQL.
+          -> Hãy phân tích Lịch sử chat (ngân sách, số người) để tạo câu lệnh SQL tìm phòng phù hợp.
+        ";
+
+        private const string LocalKnowledge = @"
+        Bạn là Lễ tân khách sạn Grandora tại TP. Vinh, Nghệ An.
+        THÔNG TIN BỔ SUNG:
+        - Giá phòng: 500k - 5 triệu.
+        - DU LỊCH: Biển Cửa Lò (15km), Quê Bác (13km), Đảo Chè Thanh Chương (40km).
+        - ẨM THỰC: Cháo lươn, Súp lươn Nghệ An.
         ";
 
         public AiChatService(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection")
                                 ?? throw new Exception("Chuỗi kết nối không tìm thấy");
-
             _geminiApiKey = configuration["Gemini:ApiKey"];
-            _geminiApiUrl =
-    $"https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={_geminiApiKey}";
-
+            // Dùng model 2.5 Flash
+            _geminiApiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_geminiApiKey}";
         }
 
-        public async Task<string> ProcessChat(string userMessage)
+        public async Task<string> ProcessChat(string userMessage, string sessionId)
         {
-            string sqlQuery = await GenerateSqlFromText(userMessage);
+            string historyContext = GetHistory(sessionId);
 
-            // SỬA Ở ĐÂY: Thêm check điều kiện "NO_SQL"
+            // Bước 1: Sinh SQL
+            string sqlQuery = await GenerateSqlFromText(userMessage, historyContext);
+            string botReply = "";
+
             if (sqlQuery.Contains("NO_SQL") || sqlQuery.StartsWith("ERROR") || string.IsNullOrWhiteSpace(sqlQuery))
             {
-                return await AskGeminiGeneral(userMessage);
+                botReply = await AskGeminiGeneral(userMessage, historyContext);
+            }
+            else
+            {
+                // Bước 2: Chạy SQL và hiển thị Card phòng (Có nút Đặt Ngay)
+                string dataResult = ExecuteSql(sqlQuery);
+                botReply = await GenerateNaturalResponse(userMessage, dataResult, historyContext);
             }
 
-            string dataResult = ExecuteSql(sqlQuery);
-            return await GenerateNaturalResponse(userMessage, dataResult);
+            // Bước 3: Lưu lịch sử chat
+            SaveHistory(sessionId, "User: " + userMessage);
+            string cleanReply = System.Text.RegularExpressions.Regex.Replace(botReply, "<.*?>", String.Empty);
+            SaveHistory(sessionId, "Bot: " + cleanReply);
+
+            return botReply;
         }
 
-        private async Task<string> GenerateSqlFromText(string question)
+        // --- CÁC HÀM PHỤ TRỢ ---
+        private string GetHistory(string sessionId)
         {
-            var prompt = $"{DbSchema}\n\nCâu hỏi: {question}\nSQL Query:";
-            var response = await CallGeminiApi(prompt);
+            if (!_chatHistory.ContainsKey(sessionId)) return "";
+            return string.Join("\n", _chatHistory[sessionId].TakeLast(6));
+        }
 
+        private void SaveHistory(string sessionId, string msg)
+        {
+            if (!_chatHistory.ContainsKey(sessionId)) _chatHistory[sessionId] = new List<string>();
+            _chatHistory[sessionId].Add(msg);
+            if (_chatHistory[sessionId].Count > 10) _chatHistory[sessionId].RemoveAt(0);
+        }
+
+        private async Task<string> GenerateSqlFromText(string question, string history)
+        {
+            var prompt = $"{DbSchema}\n\nLỊCH SỬ CHAT (Chứa nhu cầu khách):\n{history}\n\nCâu hỏi: {question}\nSQL Query:";
+
+            var response = await CallGeminiApi(prompt);
             response = response.Replace("```sql", "").Replace("```", "").Trim();
 
-            // Nếu AI trả về NO_SQL thì return luôn
             if (response.Contains("NO_SQL")) return "NO_SQL";
-
             if (!response.ToUpper().StartsWith("SELECT")) return "ERROR";
             return response;
         }
@@ -77,96 +126,72 @@ namespace QLKhachSan.Services
                 using (var conn = new SqlConnection(_connectionString))
                 {
                     var result = conn.Query(sql);
-                    if (!result.Any()) return "EMPTY_DATA";
+                    if (!result.Any()) return "EMPTY_RESULT_SET";
                     return JsonConvert.SerializeObject(result);
                 }
             }
-            catch (Exception ex) { return $"Lỗi truy vấn: {ex.Message}"; }
+            catch (Exception ex) { return $"SQL_ERROR: {ex.Message}"; }
         }
 
-        private async Task<string> GenerateNaturalResponse(string question, string data)
+        private async Task<string> GenerateNaturalResponse(string question, string data, string history)
         {
-            if (data == "EMPTY_DATA")
-            {
-                return "Dạ hiện tại em không tìm thấy phòng nào phù hợp với yêu cầu của anh/chị ạ.";
-            }
-
             var prompt = $@"
-            Dữ liệu phòng tìm được (JSON): {data}
-            Câu hỏi của khách: '{question}'
+            {LocalKnowledge}
+            ----------------
+            LỊCH SỬ CHAT: {history}
+            ----------------
+            Câu hỏi: '{question}'
+            Dữ liệu DB: {data}
 
-            YÊU CẦU TRẢ LỜI:
-            1. Đóng vai lễ tân, trả lời ngắn gọn (dưới 20 từ) ở dòng đầu tiên.
-            2. Sau đó, hiển thị danh sách phòng dưới dạng HTML Card.
-            3. Sử dụng mẫu HTML sau cho MỖI phòng (Không được thay đổi cấu trúc class, chỉ thay nội dung trong {{...}}):
+            YÊU CẦU:
+            1. Trả lời ngắn gọn: 'Dựa trên nhu cầu của anh chị, em tìm thấy các phòng này...'
+            2. QUAN TRỌNG: Hiển thị HTML Card cho từng phòng (Mẫu dưới, KHÔNG ĐƯỢC THAY ĐỔI):
 
-            <div class='card d-inline-block m-1 shadow-sm' style='width: 260px; vertical-align: top; border: 1px solid #eee;'>
-                <img src='/images/rooms/{{ImageUrl}}' class='card-img-top' style='height: 150px; object-fit: cover; width: 100%;' onerror=""this.src='https://placehold.co/600x400?text=No+Image'"">
-                <div class='card-body p-2'>
-                    <h6 class='card-title text-primary font-weight-bold mb-1'>{{RoomType}} - P.{{RoomNumber}}</h6>
-                    <p class='text-danger font-weight-bold mb-1' style='font-size: 1.1em;'>{{Price}} VNĐ</p>
-                    <p class='text-muted small mb-2' style='height: 40px; overflow: hidden;'>{{Amenities}}</p>
-                    <a href='/Home/Booking?roomId={{RoomId}}' class='btn btn-sm btn-success btn-block' style='width: 100%;'>Đặt ngay</a>
+            <div class='card d-inline-block mb-2 mr-2 shadow-sm border-0' style='width: 250px; vertical-align: top; background: #fff; border-radius: 12px;'>
+                <div style='position: relative;'>
+                    <img src='/assets/img/hotel/{{ImageUrl}}' class='card-img-top' style='height: 140px; object-fit: cover; border-top-left-radius: 12px; border-top-right-radius: 12px;' onerror=""this.src='https://placehold.co/600x400?text=Grandora'"">
+                    <span class='badge badge-success' style='position: absolute; top: 10px; right: 10px;'>{{RoomType}}</span>
+                </div>
+                <div class='card-body p-2 text-left'>
+                    <h6 class='card-title font-weight-bold text-dark mb-1'>P.{{RoomNumber}}</h6>
+                    <p class='text-danger font-weight-bold mb-1' style='font-size: 1.1em;'>{{Price}} ₫</p>
+                    <p class='text-muted small mb-2 text-truncate'>{{Amenities}}</p>
+                    
+                    <a href='/Home/Booking?roomId={{RoomId}}' class='btn btn-sm btn-primary btn-block' style='border-radius: 20px; width: 100%;'>Đặt Ngay</a>
                 </div>
             </div>
-
-            LƯU Ý: 
-            - Thay thế {{ImageUrl}}, {{RoomType}}, {{Price}}... bằng dữ liệu thật từ JSON.
-            - Nếu ImageUrl chỉ là tên file, giữ nguyên đường dẫn '/images/rooms/filename.jpg'.
-            - KHÔNG dùng Markdown, chỉ trả về text và mã HTML thô.
+            
+            Chỉ trả về Text/HTML.
             ";
-
             return await CallGeminiApi(prompt);
         }
 
-        private async Task<string> AskGeminiGeneral(string question)
+        private async Task<string> AskGeminiGeneral(string question, string history)
         {
-            return await CallGeminiApi($"Bạn là lễ tân khách sạn Grandora. Trả lời ngắn gọn, thân thiện câu hỏi: {question}. (Không bịa đặt thông tin phòng ốc nếu không biết).");
+            var prompt = $@"
+            {LocalKnowledge}
+            ----------------
+            LỊCH SỬ CHAT: {history}
+            ----------------
+            Khách hỏi: '{question}'
+            YÊU CẦU: Trả lời tiếp nối ngữ cảnh. Gợi ý lịch trình du lịch nếu được hỏi.
+            ";
+            return await CallGeminiApi(prompt);
         }
 
-        // Thay thế toàn bộ hàm CallGeminiApi cũ bằng hàm này
         private async Task<string> CallGeminiApi(string promptText)
         {
             try
             {
                 using (var client = new HttpClient())
                 {
-                    var requestBody = new
-                    {
-                        contents = new[] { new { parts = new[] { new { text = promptText } } } }
-                    };
-
-                    var json = JsonConvert.SerializeObject(requestBody);
-                    var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                    var response = await client.PostAsync(_geminiApiUrl, content);
-                    var responseString = await response.Content.ReadAsStringAsync();
-
-                    // 1. Kiểm tra nếu HTTP Request thất bại (Ví dụ: 400 Bad Request, 401 Unauthorized...)
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        // Trả về lỗi chi tiết từ Google để dễ debug
-                        return $"Lỗi Google API ({response.StatusCode}): {responseString}";
-                    }
-
-                    var jsonResponse = JObject.Parse(responseString);
-
-                    // 2. Kiểm tra xem có nội dung trả về không
-                    var text = jsonResponse["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString();
-
-                    // Nếu text vẫn null (có thể do bị chặn nội dung - Safety Filter)
-                    if (string.IsNullOrEmpty(text))
-                    {
-                        return $"Google không trả lời. Chi tiết: {responseString}";
-                    }
-
-                    return text;
+                    var requestBody = new { contents = new[] { new { parts = new[] { new { text = promptText } } } } };
+                    var response = await client.PostAsync(_geminiApiUrl, new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json"));
+                    var jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync());
+                    return jsonResponse["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString() ?? "AI không phản hồi.";
                 }
             }
-            catch (Exception ex)
-            {
-                return $"Lỗi hệ thống (C#): {ex.Message}";
-            }
+            catch (Exception ex) { return $"Lỗi hệ thống: {ex.Message}"; }
         }
     }
 }
