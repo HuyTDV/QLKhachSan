@@ -1,0 +1,161 @@
+﻿@model QLKhachSan.Models.Room
+
+@{
+    ViewData["Title"] = "Chi tiết phòng";
+}
+
+<!-- Content Header -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Chi tiết phòng</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home", new { area = "Admin" })">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Danh sách phòng</a></li>
+                    <li class="breadcrumb-item active">Chi tiết</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Thông tin phòng: <strong>@Model.RoomNumber</strong></h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Hình ảnh phòng -->
+                            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                            {
+                                <div class="col-md-12 text-center mb-4">
+                                    <img src="@Model.ImageUrl" alt="@Model.RoomNumber"
+                                         class="img-fluid rounded"
+                                         style="max-height: 400px; object-fit: cover;" />
+                                </div>
+                            }
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-5">Chi nhánh:</dt>
+                                    <dd class="col-sm-7">
+                                        <span class="badge badge-info">
+                                            @(Model.HotelBranch?.BranchName ?? "Chưa có")
+                                        </span>
+                                    </dd>
+
+                                    <dt class="col-sm-5">Số phòng:</dt>
+                                    <dd class="col-sm-7">
+                                        <strong>@Model.RoomNumber</strong>
+                                    </dd>
+
+                                    <dt class="col-sm-5">Loại phòng:</dt>
+                                    <dd class="col-sm-7">@Model.RoomType</dd>
+
+                                    <dt class="col-sm-5">Sức chứa:</dt>
+                                    <dd class="col-sm-7">
+                                        <i class="fas fa-user"></i> @Model.Capacity người
+                                    </dd>
+
+                                    <dt class="col-sm-5">Giá phòng:</dt>
+                                    <dd class="col-sm-7">
+                                        <span class="badge badge-success" style="font-size: 1.1em;">
+                                            @String.Format("{0:N0}", Model.Price) đ
+                                        </span>
+                                    </dd>
+                                </dl>
+                            </div>
+
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-5">Trạng thái:</dt>
+                                    <dd class="col-sm-7">
+                                        @switch (Model.Status)
+                                        {
+                                            case "Available":
+                                                <span class="badge badge-success">Phòng trống</span>
+                                                break;
+                                            case "Booked":
+                                                <span class="badge badge-warning">Đã đặt</span>
+                                                break;
+                                            case "Maintenance":
+                                                <span class="badge badge-danger">Bảo trì</span>
+                                                break;
+                                            case "Cleaning":
+                                                <span class="badge badge-info">Đang dọn</span>
+                                                break;
+                                            default:
+                                                <span class="badge badge-secondary">@Model.Status</span>
+                                                break;
+                                        }
+                                    </dd>
+
+                                    <dt class="col-sm-5">Ngày tạo:</dt>
+                                    <dd class="col-sm-7">
+                                        <i class="far fa-calendar-alt"></i>
+                                        @Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")
+                                    </dd>
+                                </dl>
+
+                                @if (!string.IsNullOrEmpty(Model.Amenities))
+                                {
+                                    <dl class="row">
+                                        <dt class="col-sm-5">Tiện nghi:</dt>
+                                        <dd class="col-sm-7">
+                                            @foreach (var amenity in Model.Amenities.Split(','))
+                                            {
+                                                <span class="badge badge-light mr-1 mb-1">
+                                                    <i class="fas fa-check-circle text-success"></i> @amenity.Trim()
+                                                </span>
+                                            }
+                                        </dd>
+                                    </dl>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Thông tin địa chỉ chi nhánh (nếu có) -->
+                        @if (Model.HotelBranch != null)
+                        {
+                            <hr />
+                            <div class="alert alert-light">
+                                <h5><i class="fas fa-hotel"></i> Thông tin chi nhánh</h5>
+                                <p class="mb-1">
+                                    <strong>Tên:</strong> @Model.HotelBranch.BranchName
+                                </p>
+                                @if (!string.IsNullOrEmpty(Model.HotelBranch.Address))
+                                {
+                                    <p class="mb-0">
+                                        <strong>Địa chỉ:</strong> @Model.HotelBranch.Address
+                                    </p>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <div class="card-footer">
+                        <a asp-action="Edit" asp-route-id="@Model.RoomId" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Sửa
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@Model.RoomId" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Xóa
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
